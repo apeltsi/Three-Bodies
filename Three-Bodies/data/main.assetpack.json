@@ -1,0 +1,6 @@
+{
+  "version": "1.0",
+  "optimizeFor": "balanced",
+  "include": ["assets/*.*", "shaders/*.*"],
+  "excludeExtensions": []
+}
