@@ -13,7 +13,21 @@ namespace ThreeBodies
 
         public static void Main(string[] args)
         {
-            Atlas.StartCoreFeatures("ThreeBodies"); // Starta Atlas
+            Atlas.StartCoreFeatures("ThreeBodies", new FrameworkConfiguration()
+            {
+                ECS = new ECSSettings()
+                {
+                    Threads = new []
+                    {
+                        new ECSThreadSettings()
+                        {
+                            Name = "Main",
+                            Frequency = 1000,
+                            Sync = true
+                        }
+                    }
+                }
+            }); // Starta Atlas
             // Vi laddar in alla resurser som vi behöver för visualiseringen
             var pack = new AssetPack("main");
             pack.Load();
