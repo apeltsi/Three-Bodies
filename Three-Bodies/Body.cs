@@ -82,7 +82,8 @@ public class Body : Component
             if (body == this) continue; // Vi kan inte påverka oss själva
             double dx = body.Position.X - Position.X;
             double dy = body.Position.Y - Position.Y;
-            double r = Math.Sqrt(dx * dx + dy * dy);
+            double softeningFactor = 0.001; // Vi använder en softening factor för att undvika singulariteter
+            double r = Math.Sqrt(dx * dx + dy * dy + softeningFactor * softeningFactor);
             if (r < 1e-10) continue; // Vi kan inte dividera med 0
             double f = 0.0000000000667 * Mass * body.Mass / (r * r); // G * m1 * m2 / r^2
             Acceleration.X += f * dx / r;
