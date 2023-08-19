@@ -20,14 +20,14 @@ public class CameraController : Component
 
     public static Entity GetCamera()
     {
-        Entity e = new Entity("Camera", null, new Vector2(15f, 15f));
+        Entity e = new Entity("Camera", null, new Vector2(1f, 1f));
         e.AddComponent<Camera>();
         e.AddComponent<CameraController>();
         return e;
     }
     
     bool firstFrame = true;
-    public double zoom = 15f;
+    public double zoom = 1f;
     float zoomSpeed = 0.1f;
     public void Update()
     {

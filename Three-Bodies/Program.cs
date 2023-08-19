@@ -9,10 +9,11 @@ namespace ThreeBodies
 {
     public static class Program
     {
-        public static Body[] Bodies;
-
+        public static Body[] Bodies = Array.Empty<Body>();
+        public const double Dt = 0.001;
         public static void Main(string[] args)
         {
+            // Starta Atlas
             Atlas.StartCoreFeatures("ThreeBodies", new FrameworkConfiguration()
             {
                 ECS = new ECSSettings()
@@ -22,12 +23,12 @@ namespace ThreeBodies
                         new ECSThreadSettings()
                         {
                             Name = "Main",
-                            Frequency = 1000,
+                            Frequency = 10000,
                             Sync = true
                         }
                     }
                 }
-            }); // Starta Atlas
+            }); 
             // Vi laddar in alla resurser som vi behöver för visualiseringen
             var pack = new AssetPack("main");
             pack.Load();
@@ -44,7 +45,6 @@ namespace ThreeBodies
             Bodies[0] = GetBody();
             Bodies[1] = GetBody();
             Bodies[2] = GetBody();
-            Body.UpdateAccelerations();
         }
 
         private static Body GetBody()

@@ -9,18 +9,13 @@ namespace ThreeBodies;
 
 public class Body : Component
 {
-    public Vec2 Position;
-    public Vec2 Velocity;
-    public Vec2 Acceleration;
-    public double Mass;
+    public Vec2 Position = new(ARandom.Range(-1f, 1f), ARandom.Range(-1f, 1f));
+    public Vec2 MidPosition = new(); // Används för midpoint metoden
+    public Vec2 Velocity = new();
+    
+    public Vec2 Acceleration = new();
+    public double Mass = 50;
     private Transform _transform; // Vi sparar transformen
-    public Body()
-    {
-        Position = new Vec2(ARandom.Range(-1f, 1f), ARandom.Range(-1f, 1f));
-        Velocity = new Vec2(ARandom.Range(-1f, 1f), ARandom.Range(-1f, 1f));
-        Acceleration = new Vec2();
-        Mass = 5;
-    }
 
     public void Start()
     {
@@ -31,14 +26,45 @@ public class Body : Component
         _transform = GetComponent<Transform>();
         _transform.Scale = new Vector2(0.05f, 0.05f);
     }
-    
+
+    private static double _lastTime = 0;
     public void Tick()
     {
-        double dt = 0.0001f;
-        Velocity.X += Acceleration.X * dt;
-        Velocity.Y += Acceleration.Y * dt;
-        Position.X += Velocity.X * dt;
-        Position.Y += Velocity.Y * dt;
+        double dt = Program.Dt;
+        if (_lastTime != Time.tickTime)
+        {
+            // Först måste vi uppdatera alla kroppars MidPoint position
+            foreach (Body body in Program.Bodies)
+            {
+                body.UpdateMidpoint(dt);
+            }
+
+            _lastTime = Time.tickTime;
+        }
+        // Se https://en.wikipedia.org/wiki/Midpoint_method
+        
+        // temporär hastighet (halvt steg framåt)
+        Vec2 tempVelocity = new Vec2(
+            Velocity.X + 0.5 * dt * Acceleration.X,
+            Velocity.Y + 0.5 * dt * Acceleration.Y
+        );
+        
+        // temporär position (halvt steg framåt)
+        MidPosition = new Vec2(
+            Position.X + 0.5 * dt * tempVelocity.X,
+            Position.Y + 0.5 * dt * tempVelocity.Y
+        );
+        
+        // räkna ut accelerationen vid den temporära positionen
+        Position = MidPosition;
+        UpdateAcceleration();
+
+        // uppdatera hastigheten och positionen
+        Velocity.X += dt * Acceleration.X;
+        Velocity.Y += dt * Acceleration.Y;
+        
+        Position.X += dt * tempVelocity.X;
+        Position.Y += dt * tempVelocity.Y;
     }
 
     public void Update()
@@ -57,17 +83,17 @@ public class Body : Component
             double dx = body.Position.X - Position.X;
             double dy = body.Position.Y - Position.Y;
             double r = Math.Sqrt(dx * dx + dy * dy);
+            if (r < 1e-10) continue; // Vi kan inte dividera med 0
             double f = 0.0000000000667 * Mass * body.Mass / (r * r); // G * m1 * m2 / r^2
             Acceleration.X += f * dx / r;
             Acceleration.Y += f * dy / r;
         }
     }
-
-    public static void UpdateAccelerations()
+    
+    private void UpdateMidpoint(double dt)
     {
-        foreach (Body body in Program.Bodies)
-        {
-            body.UpdateAcceleration();
-        }
+        MidPosition = new Vec2(Position.X + 0.5 * dt * Velocity.X,
+            Position.Y + 0.5 * dt * Velocity.Y);
     }
+    
 }
