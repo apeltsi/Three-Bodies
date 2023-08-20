@@ -7,24 +7,19 @@ using SolidCode.Atlas.Standard;
 
 namespace ThreeBodies;
 
-public class Body : Component
+public class Body
 {
-    public Vec2 Position = new(ARandom.Range(-1f, 1f), ARandom.Range(-1f, 1f));
+    public Vec2 Position;
     public Vec2 MidPosition = new(); // Används för midpoint metoden
     public Vec2 Velocity = new();
     
     public Vec2 Acceleration = new();
     public double Mass = 50;
-    private Transform _transform; // Vi sparar transformen
-
-    public void Start()
+    private Simulation _simulation;
+    public Body(Simulation simulation, BodyState state)
     {
-        // Vi lägger till en komponent som kan ritas ut
-        SpriteRenderer sr = Entity.AddComponent<SpriteRenderer>();
-        sr.Sprite = AssetManager.GetTexture("node");
-        sr.Color = new Vector4(ARandom.Value(), ARandom.Value(), ARandom.Value(), 1);
-        _transform = GetComponent<Transform>();
-        _transform.Scale = new Vector2(0.05f, 0.05f);
+        _simulation = simulation;
+        Position = state.SamplePosition();
     }
 
     private static double _lastTime = 0;
@@ -34,7 +29,7 @@ public class Body : Component
         if (_lastTime != Time.tickTime)
         {
             // Först måste vi uppdatera alla kroppars MidPoint position
-            foreach (Body body in Program.Bodies)
+            foreach (Body body in _simulation.Bodies)
             {
                 body.UpdateMidpoint(dt);
             }
@@ -66,18 +61,12 @@ public class Body : Component
         Position.X += dt * tempVelocity.X;
         Position.Y += dt * tempVelocity.Y;
     }
-
-    public void Update()
-    {
-        // Vi uppdaterar den grafiska positionen av kroppen
-        _transform.Position = Position.AsVector2();
-    }
     
     private void UpdateAcceleration() // Vi måste uppdatera alla samtidigt
     {
         Acceleration.X = 0;
         Acceleration.Y = 0;
-        foreach (Body body in Program.Bodies)
+        foreach (Body body in _simulation.Bodies)
         {
             if (body == this) continue; // Vi kan inte påverka oss själva
             double dx = body.Position.X - Position.X;

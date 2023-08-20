@@ -4,13 +4,24 @@ using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Rendering;
 using SolidCode.Atlas.Rendering.PostProcess;
 using SolidCode.Atlas.Standard;
+using ThreeBodies.Utils;
 
 namespace ThreeBodies
 {
     public static class Program
     {
-        public static Body[] Bodies = Array.Empty<Body>();
-        public const double Dt = 0.001;
+        public const double Dt = 0.2;
+        public const int SimCount = 1000;
+        public const int TickCount = 20_000;
+        public const int ThreadCount = 50;
+        public const int TotalSimulations = ThreadCount * SimCount;
+        private static int _simulationsPerformed = 0;
+        private static int ThreadsAlive = 0;
+        public static ProbabilityMap ProbabilityMap = new();
+        public static NormalDistribution NormalDistribution = new (0f, 0.5f);
+        public static int SimulationsPerformed => _simulationsPerformed;
+        public static SimulationState State;
+        public static bool quit = false;
         public static void Main(string[] args)
         {
             // Starta Atlas
@@ -23,7 +34,7 @@ namespace ThreeBodies
                         new ECSThreadSettings()
                         {
                             Name = "Main",
-                            Frequency = 10000,
+                            Frequency = 1,
                             Sync = true
                         }
                     }
@@ -32,25 +43,78 @@ namespace ThreeBodies
             // Vi laddar in alla resurser som vi behöver för visualiseringen
             var pack = new AssetPack("main");
             pack.Load();
-            
+            var worker = new Thread(StartThreads);
+            worker.Start();
+            Progress.GetText();
             Renderer.AddPostProcessEffect(new BloomEffect()); // Grafisk effekt
-            GenerateBodies();
             CameraController.GetCamera();
             Atlas.Start();
+            quit = true;
+            worker.Join();
         }
 
-        public static void GenerateBodies()
+        public static void StartThreads()
         {
-            Bodies = new Body[3];
-            Bodies[0] = GetBody();
-            Bodies[1] = GetBody();
-            Bodies[2] = GetBody();
-        }
+            _simulationsPerformed = 0;
+            ProbabilityMap = new();
+            State = new SimulationState();
+            for (int i = 0; i < ThreadCount; i++)
+            {
+                var t = new Thread(ThreadEntry);
+                t.Start();
+            }
+            Thread.Sleep(1000);
+            while (ThreadsAlive != 0)
+            {
+                Thread.Sleep(1000);
+                
+            }
 
-        private static Body GetBody()
+            if (quit)
+            {
+                return;
+            }
+            StartThreads();
+        }
+        
+        public static void ThreadEntry()
         {
-            Entity e = new Entity("Body");
-            return e.AddComponent<Body>();
+            Interlocked.Increment(ref ThreadsAlive);
+            int sims = 0;
+            int lastAdd = 0;
+            var map = new ProbabilityMap();
+            while (sims < SimCount)
+            {
+                var sim = new Simulation(State);
+                sim.RunSimulation(map);
+                sims++;
+                if (sims - lastAdd == 10)
+                {
+                    Interlocked.Add(ref _simulationsPerformed, 10);
+                    lastAdd = sims;
+                }
+                if (quit)
+                {
+                    Interlocked.Decrement(ref ThreadsAlive);
+                    return;
+                }
+            }
+
+            int toAdd = sims - lastAdd;
+            
+            if(toAdd > 0)
+                Interlocked.Add(ref _simulationsPerformed, toAdd);
+
+            lock (ProbabilityMap)
+            {
+                ProbabilityMap += map;
+            }
+            int left = Interlocked.Decrement(ref ThreadsAlive);
+            if (left == 0)
+            {
+                ProbabilityMap.CalculateMaxValues();
+                ImageGen.GenerateImage(ProbabilityMap, State.Name);
+            }
         }
     }
 }

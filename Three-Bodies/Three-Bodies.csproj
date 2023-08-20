@@ -10,9 +10,29 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Atlas\Atlas\Atlas.csproj" />
     </ItemGroup>
+    <Choose>
+        <When Condition=" '$(Configuration)'=='Debug' ">
+            <PropertyGroup>
+                <DebugSymbols>true</DebugSymbols>
+                <DebugType>full</DebugType>
+                <Optimize>false</Optimize>
+                <OutputType>Exe</OutputType>
+            </PropertyGroup>
+        </When>
+        <When Condition=" '$(Configuration)'=='Release' ">
+            <PropertyGroup>
+                <DebugSymbols>false</DebugSymbols>
+                <Optimize>true</Optimize>
+                <OutputType>WinExe</OutputType>
+            </PropertyGroup>
+        </When>
+    </Choose>
     <ItemGroup>
         <Content Include="assets\**">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
     </ItemGroup>
 </Project>

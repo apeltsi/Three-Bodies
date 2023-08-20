@@ -34,4 +34,26 @@ public class Vec2
     {
         return "<X: " + v.X + ", Y: " + v.Y + ">";
     }
+    
+    public static Vec2 operator +(Vec2 a, Vec2 b)
+    {
+        return new Vec2(a.X + b.X, a.Y + b.Y);
+    }
+
+    public static Vec2 operator *(Vec2 a, double b)
+    {
+        return new Vec2(a.X * b, a.Y * b);
+    }
+    
+    public override int GetHashCode()
+    {
+        unchecked // Overflow is fine, just wrap
+        {
+            int hash = 17;
+            // Suitable nullity checks etc, of course :)
+            hash = hash * 23 + X.GetHashCode();
+            hash = hash * 23 + Y.GetHashCode();
+            return hash;
+        }
+    }
 }
