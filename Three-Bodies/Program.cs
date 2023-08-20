@@ -39,7 +39,21 @@ namespace ThreeBodies
                         }
                     }
                 }
-            }); 
+            });
+            bool performanceMode = true;
+            EntityComponentSystem.RegisterUpdateAction(() =>
+            {
+                if (Window.Focused && performanceMode == true)
+                {
+                    performanceMode = false;
+                    Window.MaxFramerate = 15;
+                }
+                else if(!Window.Focused && performanceMode == false)
+                {
+                    performanceMode = true;
+                    Window.MaxFramerate = 2;
+                }
+            });
             // Vi laddar in alla resurser som vi behöver för visualiseringen
             var pack = new AssetPack("main");
             pack.Load();

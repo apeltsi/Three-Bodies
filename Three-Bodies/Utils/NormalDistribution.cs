@@ -1,5 +1,5 @@
 ﻿namespace ThreeBodies.Utils;
-
+// scrawk - https://forum.unity.com/threads/random-number-with-normal-distribution-passing-average-value.1229193/
 public class NormalDistribution
 {
  

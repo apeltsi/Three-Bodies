@@ -26,7 +26,8 @@ public class Progress : Component
     private int frames = 0;
     public void Update()
     {
-        tr.Text = "Progress: " + Math.Round((float)Program.SimulationsPerformed / (float)Program.TotalSimulations * 10000.0) / 100.0 +
+        tr.Text = "Progress: " +
+                  (Math.Round((float)Program.SimulationsPerformed / (float)Program.TotalSimulations * 10000.0) / 100.0).ToString("0.00") +
                   "% - (" + Program.SimulationsPerformed + ")";
     }
 }
