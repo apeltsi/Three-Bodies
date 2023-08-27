@@ -1,13 +1,16 @@
 ﻿using SolidCode.Atlas.Standard;
+using Three_Core;
 
-namespace ThreeBodies;
+namespace Three_core;
 
 public class SimulationState
 {
     public BodyState[] Bodies;
     public string Name;
-    public SimulationState()
+    public int SimCount;
+    public SimulationState(int simCount)
     {
+        SimCount = simCount;
         Bodies = new BodyState[3];
         Bodies[0] = new();
         Bodies[1] = new();
@@ -21,15 +24,20 @@ public class SimulationState
         Name = name;
 
     }
+
+    public void RegenName()
+    {
+        string name = "";
+        foreach (var b in Bodies)
+        {
+            name += b.Position.GetHashCode();
+        }
+
+        Name = name;
+    }
 }
 
 public class BodyState
 {
     public Vec2 Position = new(ARandom.Range(-1f, 1f), ARandom.Range(-1f, 1f));
-
-    public Vec2 SamplePosition()
-    {
-        Random r = new();
-        return Position + new Vec2(Program.NormalDistribution.Sample(r), Program.NormalDistribution.Sample(r)) * 0.01;
-    }
 }

@@ -4,6 +4,8 @@ using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Standard;
+using Three_core;
+using Three_Core;
 
 namespace ThreeBodies;
 
@@ -19,7 +21,7 @@ public class Body
     public Body(Simulation simulation, BodyState state)
     {
         _simulation = simulation;
-        Position = state.SamplePosition();
+        //Position = state.SamplePosition();
     }
 
     private static double _lastTime = 0;

@@ -1,5 +1,5 @@
-﻿#define TIME_STEP 0.8f
-#define TICKS 5000
+﻿#define TIME_STEP 0.2f
+#define TICKS 10000
 #define G 0.0000000000667f
 #define MASS 50
 
@@ -38,27 +38,27 @@ ArrData CalculateAccelerations(Body bodies[3])
     [unroll(3)]
     for (int i = 0; i < 3; i++)
     {
-        float2 netAcceleration = float2(0, 0);
+        float2 netAcceleration;
         [unroll(3)]
         for (int j = 0; j < 3; j++)
         {
             if (i != j)
             {
-                // float2 r = bodies[j].position - bodies[i].position;
-                // float softeningFactor = 0.001;
-                // float distance = length(r) + softeningFactor;
-                // if (distance < 1e-10) continue;
-                // float2 direction = r / distance;
-                // float accelerationMagnitude = G * (MASS * MASS / (distance * distance));
-                // netAcceleration += direction * accelerationMagnitude;
-                float dx = bodies[j].position.x - bodies[i].position.x;
-                float dy = bodies[j].position.y - bodies[i].position.y;
-                float softeningFactor = 0.001f;
-                float distance = sqrt(dx * dx + dy * dy) + softeningFactor;
-                if (distance < 1e-10f) continue;
+                float2 r = bodies[j].position - bodies[i].position;
+                float softeningFactor = 0.01f;
+                float distance = length(r) + softeningFactor;
+                if (distance < 1e-10) continue;
+                float2 direction = r / distance;
                 float accelerationMagnitude = G * (MASS * MASS / (distance * distance));
-
-                netAcceleration += float2(dx, dy) * accelerationMagnitude / distance;
+                netAcceleration += direction * accelerationMagnitude;
+                // float dx = bodies[j].position.x - bodies[i].position.x;
+                // float dy = bodies[j].position.y - bodies[i].position.y;
+                // float softeningFactor = 0.001f;
+                // float distance = sqrt(dx * dx + dy * dy) + softeningFactor;
+                // if (distance < 1e-10f) continue;
+                // float accelerationMagnitude = G * (MASS * MASS / (distance * distance));
+                //
+                // netAcceleration += float2(dx, dy) * accelerationMagnitude / distance;
             }
         }
         accelerations[i] = netAcceleration;
@@ -73,9 +73,10 @@ void main(int3 id : SV_DispatchThreadID)
 {
     const int access = id.x * 3;
     Body bodies[3];
-    bodies[0].position = float2(ax, ay); + float2(RandomBuffer[(id.x * 99) % 10000], RandomBuffer[(id.x * 867 + 39) % 10000]) * 0.01f;
-    bodies[1].position = float2(bx, by); + float2(RandomBuffer[(id.x * 152 + 6) % 10000], RandomBuffer[(id.x * 12 + 3) % 10000]) * 0.01f;
-    bodies[2].position = float2(cx, cy); + float2(RandomBuffer[(id.x * 7 + 92) % 10000], RandomBuffer[(id.x * 786 + 5) % 10000]) * 0.01f;
+    const int randaccess = id.x * 10;
+    bodies[0].position = float2(ax, ay) + float2(RandomBuffer[randaccess % 10000], RandomBuffer[(randaccess + 1) % 10000]) * 0.01f;
+    bodies[1].position = float2(bx, by) + float2(RandomBuffer[(randaccess + 2) % 10000], RandomBuffer[(randaccess + 3) % 10000]) * 0.01f;
+    bodies[2].position = float2(cx, cy) + float2(RandomBuffer[(randaccess + 4) % 10000], RandomBuffer[(randaccess + 5) % 10000]) * 0.01f;
     
     for(int t = 0; t < TICKS; t++)
     {

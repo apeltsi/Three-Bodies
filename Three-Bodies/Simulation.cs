@@ -1,4 +1,7 @@
-﻿namespace ThreeBodies;
+﻿using Three_core;
+using Three_Core;
+
+namespace ThreeBodies;
 
 public class Simulation
 {

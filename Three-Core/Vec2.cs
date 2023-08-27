@@ -1,7 +1,7 @@
 ﻿
 using System.Numerics;
 
-namespace ThreeBodies;
+namespace Three_Core;
 
 public class Vec2
 {

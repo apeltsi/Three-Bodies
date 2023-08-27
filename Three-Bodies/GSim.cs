@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using SolidCode.Atlas;
+using Three_core;
+using Three_Core;
 using ThreeBodies.Utils;
+using Debug = SolidCode.Atlas.Debug;
 
 namespace ThreeBodies;
 
@@ -12,7 +15,7 @@ public class GSim
     
     public GSim()
     {
-        State = new();
+        State = new(Program.CThreadCount * Program.CThreadGroups);
     }
     
     public void RunSimulation()
@@ -36,14 +39,14 @@ public class GSim
         sw.Stop();
         SolidCode.Atlas.Debug.Log("Compute Executed :) after " + sw.ElapsedMilliseconds + "ms");
         ProbabilityMap map = new ProbabilityMap();
-        for (int i = 0; i < data.Count; i += 3)
+        for (int i = 0; i < data.Count; i++)
         {
-            map.AddAt(new Vec2(data[i]), 0);
-            map.AddAt(new Vec2(data[i + 1]), 1);
-            map.AddAt(new Vec2(data[i + 2]), 2);
+            map.AddAt(new Vec2(data[i]), i % 3);
         }
-        map.CalculateMaxValues();
-        ImageGen.GenerateImage(map, State.Name);
+
+        ImageGen.GenerateImage(map, "test", 99);
+        ThreeBodySimulationData.SaveToFile(State, map);
+        
         SolidCode.Atlas.Debug.Log("Data Generated");
     }
 }

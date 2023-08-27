@@ -4,6 +4,8 @@ using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Rendering;
 using SolidCode.Atlas.Rendering.PostProcess;
 using SolidCode.Atlas.Standard;
+using Three_core;
+using Three_Core;
 using ThreeBodies.Utils;
 
 namespace ThreeBodies
@@ -14,8 +16,8 @@ namespace ThreeBodies
         public const int SimCount = 1000;
         public const int TickCount = 20_000;
         public const int ThreadCount = 50;
-        public const int CThreadCount = 50000;
-        public const int CThreadGroups = 200;
+        public const int CThreadCount = 100;
+        public const int CThreadGroups = 10000;
         public const int TotalSimulations = CThreadCount * CThreadGroups;
         private static int _simulationsPerformed = 0;
         private static int ThreadsAlive = 0;
@@ -47,7 +49,7 @@ namespace ThreeBodies
                         new ECSThreadSettings()
                         {
                             Name = "Main",
-                            Frequency = 1,
+                            Frequency = 10,
                             Sync = true
                         }
                     }
@@ -59,12 +61,12 @@ namespace ThreeBodies
                 if (Window.Focused && performanceMode == true)
                 {
                     performanceMode = false;
-                    Window.MaxFramerate = 15;
+                    Window.MaxFramerate = 60;
                 }
                 else if(!Window.Focused && performanceMode == false)
                 {
                     performanceMode = true;
-                    Window.MaxFramerate = 2;
+                    Window.MaxFramerate = 15;
                 }
             });
             // Vi laddar in alla resurser som vi behöver för visualiseringen
@@ -84,6 +86,11 @@ namespace ThreeBodies
         {
             while (!quit)
             {
+                Thread.Sleep(2000);
+                // CPUSim.RunSimulation();
+                // CPUSim.RunSimulation();
+                // CPUSim.RunSimulation();
+
                 new GSim().RunSimulation();
                 Thread.Sleep(200);
             }
@@ -93,7 +100,7 @@ namespace ThreeBodies
         {
             _simulationsPerformed = 0;
             ProbabilityMap = new();
-            State = new SimulationState();
+            State = new SimulationState(ThreadCount * SimCount);
             for (int i = 0; i < ThreadCount; i++)
             {
                 var t = new Thread(ThreadEntry);

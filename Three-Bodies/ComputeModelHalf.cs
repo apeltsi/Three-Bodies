@@ -4,6 +4,7 @@ using SolidCode.Atlas;
 using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Compute;
 using SolidCode.Atlas.Rendering;
+using Three_core;
 using Veldrid;
 
 namespace ThreeBodies;
@@ -83,15 +84,18 @@ public class ComputeModelHalf
         rwBuffer =
             factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<Vector2>() * size,
                 BufferUsage.StructuredBufferReadWrite, (uint)Marshal.SizeOf<Vector2>()));
+        
         readBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<Vector2>() * size,
             BufferUsage.Staging));
+        
         DeviceBuffer dataBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<float>() * 10000,
             BufferUsage.StructuredBufferReadOnly,(uint)Marshal.SizeOf<float>()));
         uniformBuffer =
             factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<BodyData>(), BufferUsage.UniformBuffer));
         Renderer.GraphicsDevice.UpdateBuffer(rwBuffer, 0, new Vector2[size]);
+        Renderer.GraphicsDevice.UpdateBuffer(readBuffer, 0, new Vector2[size]);
         Renderer.GraphicsDevice.UpdateBuffer(dataBuffer, 0, GetRandomData());
-        Renderer.GraphicsDevice.UpdateBuffer(uniformBuffer, 0, new BodyData(new SimulationState()));
+        Renderer.GraphicsDevice.UpdateBuffer(uniformBuffer, 0, new BodyData(new SimulationState(Program.CThreadCount * Program.CThreadGroups)));
         _resourceSet = factory.CreateResourceSet(new ResourceSetDescription
         {
             Layout = layout,
@@ -143,6 +147,8 @@ public class ComputeModelHalf
             data[i] = res[i];
         }
         Renderer.GraphicsDevice.Unmap(res.MappedResource.Resource);
+        Renderer.GraphicsDevice.UpdateBuffer(rwBuffer, 0, new Vector2[size]);
+        Renderer.GraphicsDevice.UpdateBuffer(readBuffer, 0, new Vector2[size]);
         return data;
     }
     

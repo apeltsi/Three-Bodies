@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <RootNamespace>Three_Core</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+        <PackageReference Include="ZstdSharp.Port" Version="0.7.2" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Atlas\Atlas\Atlas.csproj" />
+    </ItemGroup>
+
+</Project>
