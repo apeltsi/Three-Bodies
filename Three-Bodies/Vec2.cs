@@ -20,6 +20,12 @@ public class Vec2
         this.Y = 0;
     }
 
+    public Vec2(Vector2 vector2)
+    {
+        X = vector2.X;
+        Y = vector2.Y;
+    }
+
     public Vector2 AsVector2()
     {
         return new Vector2((float) X, (float) Y);

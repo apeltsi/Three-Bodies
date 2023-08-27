@@ -35,4 +35,8 @@
     <ItemGroup>
       <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
     </ItemGroup>
+    <ItemGroup>
+      <ClCompile Include="data\shaders\OLD3bp.compute.hlsl" />
+      <ClCompile Include="data\shaders\3bpf.compute.hlsl" />
+    </ItemGroup>
 </Project>

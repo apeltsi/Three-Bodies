@@ -1,8 +1,10 @@
-﻿namespace ThreeBodies;
+﻿using SolidCode.Atlas;
+
+namespace ThreeBodies;
 
 public class ProbabilityMap
 {
-    public const int Size = 512;
+    public const int Size = 256;
     public int[,] MapA = new int[Size, Size];
     public int[,] MapB = new int[Size, Size];
     public int[,] MapC = new int[Size, Size];
@@ -13,20 +15,28 @@ public class ProbabilityMap
 
     public void AddAt(Vec2 pos, int body)
     {
+        if (double.IsNaN(pos.Y) || double.IsNaN(pos.X))
+            return;
         int posX = (int) Math.Clamp(Math.Round((pos.X + MapSize / 2) * (Size - 1) / MapSize), 0, Size - 1);
         int posY = (int) Math.Clamp(Math.Round((pos.Y + MapSize / 2) * (Size - 1) / MapSize), 0, Size - 1);
-        
-        switch (body)
+        try
         {
-            case 0:
-                MapA[posX, posY]++;
-                break;
-            case 1:
-                MapB[posX, posY]++;
-                break;
-            case 2:
-                MapC[posX, posY]++;
-                break;
+            switch (body)
+            {
+                case 0:
+                    MapA[posX, posY]++;
+                    break;
+                case 1:
+                    MapB[posX, posY]++;
+                    break;
+                case 2:
+                    MapC[posX, posY]++;
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Error("Add failed at " + posX + " - " + posY + " with " + pos);
         }
     }
     

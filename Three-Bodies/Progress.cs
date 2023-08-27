@@ -1,8 +1,10 @@
-﻿using System.Numerics;
-using SolidCode.Atlas;
+﻿using System.Diagnostics;
+using System.Numerics;
 using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.UI;
+using ThreeBodies.Utils;
+using Debug = SolidCode.Atlas.Debug;
 
 namespace ThreeBodies;
 
@@ -29,5 +31,10 @@ public class Progress : Component
         tr.Text = "Progress: " +
                   (Math.Round((float)Program.SimulationsPerformed / (float)Program.TotalSimulations * 10000.0) / 100.0).ToString("0.00") +
                   "% - (" + Program.SimulationsPerformed + ")";
+    }
+
+    private int _index = 0;
+    public void Tick()
+    {
     }
 }

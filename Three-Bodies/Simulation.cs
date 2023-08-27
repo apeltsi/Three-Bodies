@@ -30,5 +30,4 @@ public class Simulation
         map.AddAt(Bodies[1].Position, 1);
         map.AddAt(Bodies[2].Position, 2);
     }
-    
 }

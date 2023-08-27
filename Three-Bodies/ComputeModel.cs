@@ -1,0 +1,135 @@
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
+using SolidCode.Atlas;
+using SolidCode.Atlas.AssetManagement;
+using SolidCode.Atlas.Compute;
+using SolidCode.Atlas.Rendering;
+using Veldrid;
+
+namespace ThreeBodies;
+
+public class ComputeModel
+{
+    private Pipeline? _pipeline;
+    private ResourceSet _resourceSet;
+
+    struct BodyData
+    {
+        public double ax = 0.5;
+        public double ay = 0.5;
+        public double bx = -0.1;
+        public double by = 0.2;
+        public double cx = 0.3;
+        public double cy = 0.4;
+
+        public BodyData()
+        {
+        }
+    }
+    
+    public ComputeModel()
+    {
+        ComputeShader? shader = AssetManager.GetAsset<ComputeShader>("3bp");
+        
+        if (shader == null || shader.Shader == null)
+        {
+            Debug.Error(LogCategory.Framework, "Could not create ComputeModel: Shader is null.");
+            return;
+        }
+        
+        CreateResources(shader);
+    }
+
+    private DeviceBuffer rwBuffer;
+    private DeviceBuffer readBuffer;
+    private uint size = Program.CThreadCount * 3;
+
+    public float[] GetRandomData()
+    {
+        Random r = new Random();
+        float[] data = new float[10000];
+        for (int i = 0; i < 10000; i++)
+        {
+            data[i] = (float)Program.NormalDistribution.Sample(r);
+        }
+
+        return data;
+    }
+    private void CreateResources(ComputeShader shader)
+    {
+        ResourceFactory factory = Renderer.GraphicsDevice.ResourceFactory;
+        ResourceLayout layout = factory.CreateResourceLayout(new ResourceLayoutDescription(new[]
+        {
+            new ResourceLayoutElementDescription("PrimaryBuffer", ResourceKind.StructuredBufferReadWrite,
+                ShaderStages.Compute),
+            new ResourceLayoutElementDescription("RandomBuffer", ResourceKind.StructuredBufferReadOnly,
+                ShaderStages.Compute),
+            new ResourceLayoutElementDescription("UniformBuffer", ResourceKind.UniformBuffer,
+                ShaderStages.Compute)
+        }));
+        rwBuffer =
+            factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<Vector2>() * size,
+                BufferUsage.StructuredBufferReadWrite, (uint)Marshal.SizeOf<Vector2>()));
+        readBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<Vector2>() * size,
+            BufferUsage.Staging));
+        DeviceBuffer dataBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<float>() * 10000,
+            BufferUsage.StructuredBufferReadOnly,(uint)Marshal.SizeOf<float>()));
+        DeviceBuffer uniformBuffer =
+            factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<BodyData>(), BufferUsage.UniformBuffer));
+        Renderer.GraphicsDevice.UpdateBuffer(rwBuffer, 0, new Vector2[size]);
+        Renderer.GraphicsDevice.UpdateBuffer(dataBuffer, 0, GetRandomData());
+        Renderer.GraphicsDevice.UpdateBuffer(uniformBuffer, 0, new BodyData());
+        _resourceSet = factory.CreateResourceSet(new ResourceSetDescription
+        {
+            Layout = layout,
+            BoundResources = new BindableResource[]
+            {
+                rwBuffer,
+                dataBuffer,
+                uniformBuffer
+            }
+        });
+        
+        var pipelineDesc = new ComputePipelineDescription
+        {
+            ComputeShader = shader.Shader!,
+            ResourceLayouts = new ResourceLayout[]
+            {
+                layout
+            },
+            ThreadGroupSizeX = 1,
+            ThreadGroupSizeY = 1,
+            ThreadGroupSizeZ = 1,
+            
+        };
+        
+        _pipeline = factory.CreateComputePipeline(pipelineDesc);
+    }
+
+    public void Dispatch(uint xGroups, uint yGroups, uint zGroups)
+    {
+        GraphicsDevice gd = Renderer.GraphicsDevice!;
+        gd.WaitForIdle();
+        Renderer.CommandList.Begin();
+        Renderer.CommandList.SetPipeline(_pipeline!);
+        Renderer.CommandList.SetComputeResourceSet(0, _resourceSet);
+        Renderer.CommandList.Dispatch(xGroups, yGroups, zGroups);
+        
+        Renderer.CommandList.CopyBuffer(rwBuffer, 0, readBuffer, 0,(uint)Marshal.SizeOf<Vector2>() * size );
+        Renderer.CommandList.End();
+        gd.SubmitCommands(Renderer.CommandList);
+        gd.WaitForIdle();
+    }
+
+    public Vector2[] GetBuffer()
+    {
+        MappedResourceView<Vector2> res = Renderer.GraphicsDevice!.Map<Vector2>(readBuffer, MapMode.Read);
+        Vector2[] data = new Vector2[res.Count];
+        for (int i = 0; i < res.Count; i++)
+        {
+            data[i] = res[i];
+        }
+        Renderer.GraphicsDevice.Unmap(res.MappedResource.Resource);
+        return data;
+    }
+}

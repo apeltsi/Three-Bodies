@@ -14,7 +14,9 @@ namespace ThreeBodies
         public const int SimCount = 1000;
         public const int TickCount = 20_000;
         public const int ThreadCount = 50;
-        public const int TotalSimulations = ThreadCount * SimCount;
+        public const int CThreadCount = 50000;
+        public const int CThreadGroups = 200;
+        public const int TotalSimulations = CThreadCount * CThreadGroups;
         private static int _simulationsPerformed = 0;
         private static int ThreadsAlive = 0;
         public static ProbabilityMap ProbabilityMap = new();
@@ -22,6 +24,17 @@ namespace ThreeBodies
         public static int SimulationsPerformed => _simulationsPerformed;
         public static SimulationState State;
         public static bool quit = false;
+
+        internal static void AddSimulations(int simcount)
+        {
+            _simulationsPerformed += simcount;
+        }
+        
+        internal static void ResetSimulations()
+        {
+            _simulationsPerformed = 0;
+        }
+        
         public static void Main(string[] args)
         {
             // Starta Atlas
@@ -57,14 +70,23 @@ namespace ThreeBodies
             // Vi laddar in alla resurser som vi behöver för visualiseringen
             var pack = new AssetPack("main");
             pack.Load();
-            var worker = new Thread(StartThreads);
+            var worker = new Thread(StartGSim);
             worker.Start();
+            
             Progress.GetText();
-            Renderer.AddPostProcessEffect(new BloomEffect()); // Grafisk effekt
             CameraController.GetCamera();
             Atlas.Start();
             quit = true;
             worker.Join();
+        }
+
+        public static void StartGSim()
+        {
+            while (!quit)
+            {
+                new GSim().RunSimulation();
+                Thread.Sleep(200);
+            }
         }
 
         public static void StartThreads()
