@@ -18,7 +18,10 @@ public class PathFollower : Component
     public void Update()
     {
         if (frame < Path.Length)
+        {
             tr.Position = Path[frame++];
+            frame += 10;
+        }
         else
             frame = 0;
     }

@@ -30,7 +30,7 @@ public class GSim
         for (int i = 0; i < Program.CThreadGroups; i++)
         {
             TickScheduler.RequestTick().Wait();
-            _model.Dispatch(Program.CThreadCount, 1,1);
+            _model.Dispatch(Program.CThreadCount / 100, 1,1); // We divide by 100 because we have 100 threads per group
             data.AddRange(_model.GetBuffer());
             TickScheduler.FreeThreads();
             SolidCode.Atlas.Debug.Log("Progress: " + (i / (float)Program.CThreadGroups * 100).ToString("F1") + "%");

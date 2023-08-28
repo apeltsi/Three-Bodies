@@ -1,7 +1,7 @@
-﻿#define TIME_STEP 0.2f
+﻿#define TIME_STEP 0.4f
 #define TICKS 10000
 #define G 0.0000000000667f
-#define MASS 50
+#define MASS 50.0f
 
 [[vk::binding(0, 0)]]
 RWStructuredBuffer<float2> PrimaryBuffer;
@@ -45,7 +45,7 @@ ArrData CalculateAccelerations(Body bodies[3])
             if (i != j)
             {
                 float2 r = bodies[j].position - bodies[i].position;
-                float softeningFactor = 0.01f;
+                float softeningFactor = 0.001f;
                 float distance = length(r) + softeningFactor;
                 if (distance < 1e-10) continue;
                 float2 direction = r / distance;
@@ -68,15 +68,15 @@ ArrData CalculateAccelerations(Body bodies[3])
     return data;
 }
 
-[numthreads(1,1,1)]
+[numthreads(100,1,1)]
 void main(int3 id : SV_DispatchThreadID)
 {
     const int access = id.x * 3;
     Body bodies[3];
     const int randaccess = id.x * 10;
-    bodies[0].position = float2(ax, ay) + float2(RandomBuffer[randaccess % 10000], RandomBuffer[(randaccess + 1) % 10000]) * 0.01f;
-    bodies[1].position = float2(bx, by) + float2(RandomBuffer[(randaccess + 2) % 10000], RandomBuffer[(randaccess + 3) % 10000]) * 0.01f;
-    bodies[2].position = float2(cx, cy) + float2(RandomBuffer[(randaccess + 4) % 10000], RandomBuffer[(randaccess + 5) % 10000]) * 0.01f;
+    bodies[0].position = float2(ax, ay) + float2(RandomBuffer[randaccess % 10000], RandomBuffer[(randaccess + 1) % 10000]) * 0.001f;
+    bodies[1].position = float2(bx, by) + float2(RandomBuffer[(randaccess + 2) % 10000], RandomBuffer[(randaccess + 3) % 10000]) * 0.001f;
+    bodies[2].position = float2(cx, cy) + float2(RandomBuffer[(randaccess + 4) % 10000], RandomBuffer[(randaccess + 5) % 10000]) * 0.001f;
     
     for(int t = 0; t < TICKS; t++)
     {
@@ -102,8 +102,8 @@ void main(int3 id : SV_DispatchThreadID)
             bodies[i].velocity += mid_accelerations[i] * TIME_STEP;
         }
     }
-    PrimaryBuffer[access] =     float2(bodies[0].position.x, bodies[0].position.y);
-    PrimaryBuffer[access + 1] = float2(bodies[1].position.x, bodies[1].position.y);
-    PrimaryBuffer[access + 2] = float2(bodies[2].position.x, bodies[2].position.y);
+    PrimaryBuffer[access] = bodies[0].position;
+    PrimaryBuffer[access + 1] = bodies[1].position;
+    PrimaryBuffer[access + 2] = bodies[2].position;
 }
 

@@ -12,8 +12,8 @@ public class CPUSim
 {
     public const float G = 0.0000000000667f;
     public const float Mass = 50f;
-    public const int Ticks = 1000;
-    public const float TimeStep = 0.8f;
+    public const int Ticks = 15000;
+    public const float TimeStep = 0.4f;
     struct Body
     {
         public Vector2 Position;

@@ -16,8 +16,8 @@ namespace ThreeBodies
         public const int SimCount = 1000;
         public const int TickCount = 20_000;
         public const int ThreadCount = 50;
-        public const int CThreadCount = 100;
-        public const int CThreadGroups = 10000;
+        public const int CThreadCount = 100000;
+        public const int CThreadGroups = 1000;
         public const int TotalSimulations = CThreadCount * CThreadGroups;
         private static int _simulationsPerformed = 0;
         private static int ThreadsAlive = 0;
@@ -84,13 +84,12 @@ namespace ThreeBodies
 
         public static void StartGSim()
         {
+            Thread.Sleep(1000);
             while (!quit)
             {
-                Thread.Sleep(2000);
+                //CPUSim.RunSimulation();
                 // CPUSim.RunSimulation();
                 // CPUSim.RunSimulation();
-                // CPUSim.RunSimulation();
-
                 new GSim().RunSimulation();
                 Thread.Sleep(200);
             }

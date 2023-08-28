@@ -89,7 +89,7 @@ public class ComputeModelHalf
             BufferUsage.Staging));
         
         DeviceBuffer dataBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<float>() * 10000,
-            BufferUsage.StructuredBufferReadOnly,(uint)Marshal.SizeOf<float>()));
+            BufferUsage.StructuredBufferReadOnly,4));
         uniformBuffer =
             factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<BodyData>(), BufferUsage.UniformBuffer));
         Renderer.GraphicsDevice.UpdateBuffer(rwBuffer, 0, new Vector2[size]);
@@ -147,8 +147,8 @@ public class ComputeModelHalf
             data[i] = res[i];
         }
         Renderer.GraphicsDevice.Unmap(res.MappedResource.Resource);
-        Renderer.GraphicsDevice.UpdateBuffer(rwBuffer, 0, new Vector2[size]);
-        Renderer.GraphicsDevice.UpdateBuffer(readBuffer, 0, new Vector2[size]);
+        //Renderer.GraphicsDevice.UpdateBuffer(rwBuffer, 0, new Vector2[size]);
+        //Renderer.GraphicsDevice.UpdateBuffer(readBuffer, 0, new Vector2[size]);
         return data;
     }
     
