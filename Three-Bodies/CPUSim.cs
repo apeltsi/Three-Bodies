@@ -6,6 +6,9 @@ using SolidCode.Atlas.ECS;
 using Three_core;
 using Three_Core;
 
+// This is a normal CPU Implementation of the Three-Body Problem (directly translated from the HLSL Compute implementation)
+// see data/shaders/3bpf.compute.hlsl
+
 namespace ThreeBodies;
 
 public class CPUSim

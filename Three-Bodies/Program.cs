@@ -39,7 +39,7 @@ namespace ThreeBodies
         
         public static void Main(string[] args)
         {
-            // Starta Atlas
+            // Start Atlas
             Atlas.StartCoreFeatures("ThreeBodies", new FrameworkConfiguration()
             {
                 ECS = new ECSSettings()
@@ -69,7 +69,7 @@ namespace ThreeBodies
                     Window.MaxFramerate = 15;
                 }
             });
-            // Vi laddar in alla resurser som vi behöver för visualiseringen
+            // We'll load the main assetpack containing our shaders & assets
             var pack = new AssetPack("main");
             pack.Load();
             var worker = new Thread(StartGSim);

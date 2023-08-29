@@ -7,6 +7,12 @@ using SolidCode.Atlas.Rendering;
 using Three_core;
 using Veldrid;
 
+// This is a simple implementation of compute shaders in Atlas.
+// Though Atlas directly doesn't have an API for compute shaders, it's possible to use Veldrid's API directly as Atlas does expose all the necessary objects.
+// Furthermore Atlas AssetManager does support loading & compilation of compute shaders
+// Shader is located in data/shaders/3bpf.compute.hlsl and loaded from the "main" assetpack
+
+
 namespace ThreeBodies;
 
 public class ComputeModelHalf
@@ -114,7 +120,7 @@ public class ComputeModelHalf
             {
                 layout
             },
-            ThreadGroupSizeX = 1,
+            ThreadGroupSizeX = 128,
             ThreadGroupSizeY = 1,
             ThreadGroupSizeZ = 1,
             

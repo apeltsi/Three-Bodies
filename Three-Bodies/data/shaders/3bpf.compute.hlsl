@@ -68,7 +68,7 @@ ArrData CalculateAccelerations(Body bodies[3])
     return data;
 }
 
-[numthreads(100,1,1)]
+[numthreads(128,1,1)]
 void main(int3 id : SV_DispatchThreadID)
 {
     const int access = id.x * 3;

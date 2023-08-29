@@ -6,6 +6,8 @@ using Three_Core;
 using ThreeBodies.Utils;
 using Debug = SolidCode.Atlas.Debug;
 
+// A simple class managing the GPU compute simulation
+
 namespace ThreeBodies;
 
 public class GSim
