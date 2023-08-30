@@ -7,7 +7,7 @@ public class ProbabilityMap
     public int[,] MapA;
     public int[,] MapB;
     public int[,] MapC;
-    public double MapSize = 1;
+    public double MapSize = 5;
     public int MaxA;
     public int MaxB;
     public int MaxC;

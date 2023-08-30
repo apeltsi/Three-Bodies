@@ -32,14 +32,14 @@ public class GSim
         for (int i = 0; i < Program.CThreadGroups; i++)
         {
             TickScheduler.RequestTick().Wait();
-            _model.Dispatch(Program.CThreadCount / 100, 1,1); // We divide by 100 because we have 100 threads per group
+            _model.Dispatch(Program.CThreadCount / 128, 1,1); // We divide by 100 because we have 100 threads per group
             data.AddRange(_model.GetBuffer());
             TickScheduler.FreeThreads();
             SolidCode.Atlas.Debug.Log("Progress: " + (i / (float)Program.CThreadGroups * 100).ToString("F1") + "%");
             Program.AddSimulations(Program.CThreadCount);
         }
         sw.Stop();
-        SolidCode.Atlas.Debug.Log("Compute Executed :) after " + sw.ElapsedMilliseconds + "ms");
+        Debug.Log("Compute Executed :) after " + sw.ElapsedMilliseconds + "ms");
         ProbabilityMap map = new ProbabilityMap();
         for (int i = 0; i < data.Count; i++)
         {
@@ -49,6 +49,6 @@ public class GSim
         ImageGen.GenerateImage(map, "test", 99);
         ThreeBodySimulationData.SaveToFile(State, map);
         
-        SolidCode.Atlas.Debug.Log("Data Generated");
+        Debug.Log("Data Generated");
     }
 }

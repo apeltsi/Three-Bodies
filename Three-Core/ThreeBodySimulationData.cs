@@ -80,6 +80,7 @@ public static class ThreeBodySimulationData
     public static RawSimulationData LoadData(byte[] data)
     {
         byte[] bytes = new Decompressor().Unwrap(data.AsSpan()).ToArray();
+        Console.WriteLine("Uncompressed size is " + (bytes.Length / (1000 * 1000)).ToString("F1") + "Mb");
         string jsonString = Encoding.UTF8.GetString(bytes);
         return JsonSerializer.Deserialize<RawSimulationData>(jsonString);
     }
