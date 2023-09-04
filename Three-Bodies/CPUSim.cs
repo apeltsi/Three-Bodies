@@ -60,7 +60,10 @@ public class CPUSim
         {
             map.AddAt(state.Bodies[i].Position, i);
         }
-        ThreeBodySimulationData.SaveToFile(state, map);
+
+        MultiFrameProbabilityMap mp = new MultiFrameProbabilityMap(1);
+        mp.SetFrames(new [] {map});
+        ThreeBodySimulationData.SaveToFile(state, mp);
     }
     
     private Vector2[] DoSim(SimulationState state)

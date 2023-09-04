@@ -13,11 +13,12 @@ namespace ThreeBodies
     public static class Program
     {
         public const double Dt = 0.2;
+        public const int FrameCount = 25;
         public const int SimCount = 1000;
         public const int TickCount = 20_000;
         public const int ThreadCount = 50;
         public const int CThreadCount = 131072;
-        public const int CThreadGroups = 1024;
+        public const int CThreadGroups = 64; //1024;
         public const int TotalSimulations = CThreadCount * CThreadGroups;
         private static int _simulationsPerformed = 0;
         private static int ThreadsAlive = 0;
@@ -26,7 +27,8 @@ namespace ThreeBodies
         public static int SimulationsPerformed => _simulationsPerformed;
         public static SimulationState State;
         public static bool quit = false;
-
+        private static Task? packTask;
+        public static bool HasInitialized = false;
         internal static void AddSimulations(int simcount)
         {
             _simulationsPerformed += simcount;
@@ -61,17 +63,20 @@ namespace ThreeBodies
                 if (Window.Focused && performanceMode == true)
                 {
                     performanceMode = false;
-                    Window.MaxFramerate = 60;
+                    Window.MaxFramerate = 10;
                 }
                 else if(!Window.Focused && performanceMode == false)
                 {
                     performanceMode = true;
-                    Window.MaxFramerate = 15;
+                    Window.MaxFramerate = 5;
                 }
             });
             // We'll load the main assetpack containing our shaders & assets
-            var pack = new AssetPack("main");
-            pack.Load();
+            EntityComponentSystem.ScheduleFrameTaskAfter(0.5f, () =>
+            {
+                var pack = new AssetPack("main");
+                packTask = pack.LoadAsync();
+            });
             var worker = new Thread(StartGSim);
             worker.Start();
             
@@ -84,7 +89,12 @@ namespace ThreeBodies
 
         public static void StartGSim()
         {
-            Thread.Sleep(1000);
+            while (packTask == null)
+            {
+                Thread.Sleep(100);
+            }
+            packTask.Wait();
+            HasInitialized = true;
             while (!quit)
             {
                 //CPUSim.RunSimulation();

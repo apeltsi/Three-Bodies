@@ -24,7 +24,8 @@ cbuffer BodyData
     float by;
     float cx;
     float cy;
-    float2 _padding;
+    int simcount;
+    int framecount;
 }
 
 struct ArrData
@@ -72,6 +73,7 @@ ArrData CalculateAccelerations(Body bodies[3])
 void main(int3 id : SV_DispatchThreadID)
 {
     const int access = id.x * 3;
+    const int frameInterval = TICKS / framecount;
     Body bodies[3];
     const int randaccess = id.x * 10;
     bodies[0].position = float2(ax, ay) + float2(RandomBuffer[randaccess % 10000], RandomBuffer[(randaccess + 1) % 10000]) * 0.001f;
@@ -101,9 +103,13 @@ void main(int3 id : SV_DispatchThreadID)
             bodies[i].position += midbodies[i].velocity * TIME_STEP;
             bodies[i].velocity += mid_accelerations[i] * TIME_STEP;
         }
+        if(t % frameInterval == 0)
+        {
+            const int frame = floor(t / frameInterval);
+            PrimaryBuffer[frame * simcount * 3 + access] = bodies[0].position;
+            PrimaryBuffer[frame * simcount * 3 + access + 1] = bodies[1].position;
+            PrimaryBuffer[frame * simcount * 3 + access + 2] = bodies[2].position;
+        }
     }
-    PrimaryBuffer[access] = bodies[0].position;
-    PrimaryBuffer[access + 1] = bodies[1].position;
-    PrimaryBuffer[access + 2] = bodies[2].position;
 }
 

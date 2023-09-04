@@ -28,9 +28,32 @@ public class Progress : Component
     private int frames = 0;
     public void Update()
     {
-        tr.Text = "Progress: " +
+        if (Program.SimulationsPerformed == 0 && !Program.HasInitialized)
+            tr.Text = "Loading Assets...";
+        else if (GSim.Status != "")
+            tr.Text = GSim.Status;
+        else 
+            tr.Text = "Progress: " +
                   (Math.Round((float)Program.SimulationsPerformed / (float)Program.TotalSimulations * 10000.0) / 100.0).ToString("0.00") +
-                  "% - (" + Program.SimulationsPerformed + ")";
+                  "% - (" + Program.SimulationsPerformed + ")\n" + FormatSimCount(GSim.SimsPerSecond);
+    }
+
+    private string FormatSimCount(int simcount)
+    {
+        if(simcount > 1_000_000)
+        {
+            return (simcount / 1_000_000f).ToString("F2") + "m/s";
+        }
+        if (simcount > 10_000)
+        {
+            return simcount / 1000 + "k/s";
+        }
+        if (simcount > 1000)
+        {
+            return (simcount / 1000f).ToString("F2") + "k/s";
+        }
+
+        return simcount + "/s";
     }
 
     private int _index = 0;

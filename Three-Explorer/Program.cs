@@ -53,20 +53,17 @@ public static class Program
                         Console.WriteLine("Reading File...");
                         byte[] bytes = File.ReadAllBytes(filename);
                         Console.WriteLine("Parsing Data...");
-                        RawSimulationData data = ThreeBodySimulationData.LoadData(bytes);
+                        RawSimulationDataCollection data = ThreeBodySimulationData.LoadData(bytes);
                         Console.WriteLine("Deserializing...");
-                        (SimulationState state, ProbabilityMap map) = ThreeBodySimulationData.GetData(data);
-                        if (BinFactor > 1)
-                        {
-                            Console.WriteLine("Binning down by factor " + BinFactor + " to resolution " + map.Size / BinFactor);
-                            map = map.BinDown(BinFactor);
-                        } 
+                        (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
+                        
                         if (arg == "imgen")
                         {
                             Console.WriteLine("Saving image...");
-                            ImageGen.GenerateImage(map, state.Name, Brightness);
+                            ImageGen.GenerateAnimation(mfmap, state.Name, Brightness, BinFactor);
                         } else if (arg == "stats")
                         {
+                            ProbabilityMap map = ProcessFrame(mfmap.Maps[^1]);
                             Console.WriteLine("Statistics for \"" + state.Name +"\"");
                             Console.WriteLine("SimCount: " + data.Simulations);
                             Console.WriteLine("Size: " + map.Size);
@@ -79,6 +76,7 @@ public static class Program
                             Console.WriteLine("C Certainty: " + (map.MaxC / (float)data.Simulations * 100).ToString("F5") + "%");
                             
                         }
+
                     }
                     else
                     {
@@ -87,5 +85,15 @@ public static class Program
                 }
             }
         }
+    }
+
+    public static ProbabilityMap ProcessFrame(ProbabilityMap map)
+    {
+        if (BinFactor > 1)
+        {
+            map = map.BinDown(BinFactor);
+        }
+
+        return map;
     }
 }

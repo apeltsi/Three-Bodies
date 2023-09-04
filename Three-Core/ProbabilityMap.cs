@@ -104,4 +104,5 @@ public class ProbabilityMap
         map.CalculateMaxValues();
         return map;
     }
+    
 }

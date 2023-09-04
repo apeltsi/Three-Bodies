@@ -28,7 +28,8 @@ public class ComputeModelHalf
         public float by = 0;
         public float cx = 0;
         public float cy = 0;
-        public Vector2 _padding;
+        public int simcount = Program.CThreadCount;
+        public int framecount = Program.FrameCount;
 
         public BodyData(SimulationState state)
         {
@@ -62,7 +63,7 @@ public class ComputeModelHalf
     private DeviceBuffer rwBuffer;
     private DeviceBuffer readBuffer;
     private DeviceBuffer uniformBuffer;
-    private uint size = Program.CThreadCount * 3;
+    private uint size = Program.CThreadCount * 3 * Program.FrameCount;
 
     public float[] GetRandomData()
     {
