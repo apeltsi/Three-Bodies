@@ -50,6 +50,8 @@ public static class Program
                     string filename = args[1];
                     if (System.IO.File.Exists(filename))
                     {
+                        string fname = Path.GetFileName(filename);
+                        fname = fname.Substring(0, fname.Length - 4);
                         Console.WriteLine("Reading File...");
                         byte[] bytes = File.ReadAllBytes(filename);
                         Console.WriteLine("Parsing Data...");
@@ -60,11 +62,11 @@ public static class Program
                         if (arg == "imgen")
                         {
                             Console.WriteLine("Saving image...");
-                            ImageGen.GenerateAnimation(mfmap, state.Name, Brightness, BinFactor);
+                            ImageGen.GenerateAnimation(mfmap, fname, Brightness, BinFactor);
                         } else if (arg == "stats")
                         {
                             ProbabilityMap map = ProcessFrame(mfmap.Maps[^1]);
-                            Console.WriteLine("Statistics for \"" + state.Name +"\"");
+                            Console.WriteLine("Statistics for \"" + fname +"\"");
                             Console.WriteLine("SimCount: " + data.Simulations);
                             Console.WriteLine("Size: " + map.Size);
                             Console.WriteLine("MAX A: " + map.MaxA);

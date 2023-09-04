@@ -39,6 +39,7 @@ public static class ImageGen
         using Image<Rgba64> gif = new(size, size, Color.Black);
         GifFrameMetadata metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata();
         metadata.FrameDelay = 20;
+        gif.Metadata.GetGifMetadata().RepeatCount = 0;
         for (int i = 0; i < map.FrameCount; i++)
         {
             ProbabilityMap m = map.Maps[i];
