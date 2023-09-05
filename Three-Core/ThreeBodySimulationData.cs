@@ -47,7 +47,7 @@ public static class ThreeBodySimulationData
         ProbabilityMap[] maps = new ProbabilityMap[data.Frames.Length];
         for (int i = 0; i < data.Frames.Length; i++)
         {
-            maps[i] = new ProbabilityMap();
+            maps[i] = new ProbabilityMap(data.Frames[i].AMap.Length);
             state.Bodies[0].Position = new Vec2(data.Frames[i].A.X, data.Frames[i].A.Y);
             state.Bodies[1].Position = new Vec2(data.Frames[i].B.X, data.Frames[i].B.Y);
             state.Bodies[2].Position = new Vec2(data.Frames[i].C.X, data.Frames[i].C.Y);
@@ -62,7 +62,7 @@ public static class ThreeBodySimulationData
             maps[i].MapSize = data.MapScale;
         }
 
-        MultiFrameProbabilityMap mfmap = new MultiFrameProbabilityMap();
+        MultiFrameProbabilityMap mfmap = new MultiFrameProbabilityMap(data.Frames.Length, maps[0].Size);
         mfmap.SetFrames(maps);
         return (state, mfmap);
     }
@@ -112,10 +112,11 @@ public static class ThreeBodySimulationData
     public static void SaveToFile(SimulationState state, MultiFrameProbabilityMap map)
     {
         RawSimulationDataCollection simData = CreateData(state, map);
+        Debug.Log("Compressing...");
         byte[] bytes = GetCompressedBytes(simData);
         if (!Directory.Exists(Path.Join(Atlas.AppDirectory, "output")))
             Directory.CreateDirectory(Path.Join(Atlas.AppDirectory, "output"));
-
+        Debug.Log("Writing to file");
         File.WriteAllBytes(Path.Join(Atlas.AppDirectory, "output/" + state.Name + ".3bp"), bytes);
     }
 }

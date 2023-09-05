@@ -36,11 +36,11 @@ struct ArrData
 ArrData CalculateAccelerations(Body bodies[3])
 {
     float2 accelerations[3];
-    [unroll(3)]
+    [loop]
     for (int i = 0; i < 3; i++)
     {
-        float2 netAcceleration;
-        [unroll(3)]
+        float2 netAcceleration = float2(0.0f, 0.0f);
+        [loop]
         for (int j = 0; j < 3; j++)
         {
             if (i != j)
@@ -52,14 +52,6 @@ ArrData CalculateAccelerations(Body bodies[3])
                 float2 direction = r / distance;
                 float accelerationMagnitude = G * (MASS * MASS / (distance * distance));
                 netAcceleration += direction * accelerationMagnitude;
-                // float dx = bodies[j].position.x - bodies[i].position.x;
-                // float dy = bodies[j].position.y - bodies[i].position.y;
-                // float softeningFactor = 0.001f;
-                // float distance = sqrt(dx * dx + dy * dy) + softeningFactor;
-                // if (distance < 1e-10f) continue;
-                // float accelerationMagnitude = G * (MASS * MASS / (distance * distance));
-                //
-                // netAcceleration += float2(dx, dy) * accelerationMagnitude / distance;
             }
         }
         accelerations[i] = netAcceleration;

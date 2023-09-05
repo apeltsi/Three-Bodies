@@ -20,6 +20,7 @@ namespace ThreeBodies
         public const int CThreadCount = 131072;
         public const int CThreadGroups = 64; //1024;
         public const int TotalSimulations = CThreadCount * CThreadGroups;
+        public const int Resolution = 1024;
         private static int _simulationsPerformed = 0;
         private static int ThreadsAlive = 0;
         public static ProbabilityMap ProbabilityMap = new();

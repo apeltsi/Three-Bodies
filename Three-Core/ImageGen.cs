@@ -38,7 +38,7 @@ public static class ImageGen
         int size = map.Maps[0].Size / binFactor;
         using Image<Rgba64> gif = new(size, size, Color.Black);
         GifFrameMetadata metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata();
-        metadata.FrameDelay = 20;
+        metadata.FrameDelay = 5;
         gif.Metadata.GetGifMetadata().RepeatCount = 0;
         for (int i = 0; i < map.FrameCount; i++)
         {
@@ -51,7 +51,7 @@ public static class ImageGen
             using (var image = GetImage(m, brightness))
             {
                 metadata = image.Frames.RootFrame.Metadata.GetGifMetadata();
-                metadata.FrameDelay = 20;
+                metadata.FrameDelay = 10;
                 gif.Frames.AddFrame(image.Frames.RootFrame);
             }
         }
