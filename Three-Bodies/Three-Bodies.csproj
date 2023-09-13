@@ -29,7 +29,7 @@
         </When>
     </Choose>
     <ItemGroup>
-        <Content Include="assets\**">
+        <Content Include="assetpacks\**">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
