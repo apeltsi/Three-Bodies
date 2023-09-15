@@ -19,7 +19,7 @@ public class Progress : Component
 
     public static Entity GetText()
     {
-        Entity e = new Entity("Progress", null, new Vector2(0.25f, 0.25f));
+        Entity e = new Entity("Progress", null, new Vector2(2f, 1f));
         e.AddComponent<TextRenderer>();
         e.AddComponent<Progress>();
         return e;

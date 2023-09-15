@@ -8,7 +8,6 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\Atlas\Atlas\Atlas.csproj" />
         <ProjectReference Include="..\Three-Core\Three-Core.csproj" />
     </ItemGroup>
     <Choose>
@@ -19,6 +18,9 @@
                 <Optimize>false</Optimize>
                 <OutputType>Exe</OutputType>
             </PropertyGroup>
+            <ItemGroup>
+                <PackageReference Include="SolidCode.Atlas.Development" Version="1.0.0-rc.1" />
+            </ItemGroup>
         </When>
         <When Condition=" '$(Configuration)'=='Release' ">
             <PropertyGroup>
@@ -26,6 +28,9 @@
                 <Optimize>true</Optimize>
                 <OutputType>WinExe</OutputType>
             </PropertyGroup>
+            <ItemGroup>
+                <PackageReference Include="SolidCode.Atlas" Version="1.0.0-rc.1" />
+            </ItemGroup>
         </When>
     </Choose>
     <ItemGroup>
@@ -36,8 +41,5 @@
     <ItemGroup>
       <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
       <PackageReference Include="ZstdSharp.Port" Version="0.7.2" />
-    </ItemGroup>
-    <ItemGroup>
-      <ClCompile Include="data\shaders\3bpf.compute.hlsl" />
     </ItemGroup>
 </Project>

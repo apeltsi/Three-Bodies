@@ -8,10 +8,8 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+        <PackageReference Include="SolidCode.Atlas" Version="1.0.0-rc.1" />
         <PackageReference Include="ZstdSharp.Port" Version="0.7.2" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\..\Atlas\Atlas\Atlas.csproj" />
     </ItemGroup>
 
 </Project>

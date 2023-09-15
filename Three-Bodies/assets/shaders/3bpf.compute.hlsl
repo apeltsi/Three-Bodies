@@ -48,7 +48,6 @@ ArrData CalculateAccelerations(Body bodies[3])
                 float2 r = bodies[j].position - bodies[i].position;
                 float softeningFactor = 0.001f;
                 float distance = length(r) + softeningFactor;
-                if (distance < 1e-10) continue;
                 float2 direction = r / distance;
                 float accelerationMagnitude = G * (MASS * MASS / (distance * distance));
                 netAcceleration += direction * accelerationMagnitude;
@@ -68,6 +67,8 @@ void main(int3 id : SV_DispatchThreadID)
     const int frameInterval = TICKS / framecount;
     Body bodies[3];
     const int randaccess = id.x * 10;
+
+    // Initial positions with some randomness
     bodies[0].position = float2(ax, ay) + float2(RandomBuffer[randaccess % 10000], RandomBuffer[(randaccess + 1) % 10000]) * 0.001f;
     bodies[1].position = float2(bx, by) + float2(RandomBuffer[(randaccess + 2) % 10000], RandomBuffer[(randaccess + 3) % 10000]) * 0.001f;
     bodies[2].position = float2(cx, cy) + float2(RandomBuffer[(randaccess + 4) % 10000], RandomBuffer[(randaccess + 5) % 10000]) * 0.001f;
@@ -76,7 +77,7 @@ void main(int3 id : SV_DispatchThreadID)
     {
         float2 initialAccelerations[3] = CalculateAccelerations(bodies).data;
 
-        // Vi räknar ut mellanstegen
+        // Calculate the midpoint positions and velocities
         Body midbodies[3];
         [unroll(3)]
         for (int i = 0; i < 3; i++)
@@ -85,16 +86,18 @@ void main(int3 id : SV_DispatchThreadID)
             midbodies[i].velocity = bodies[i].velocity + initialAccelerations[i] * TIME_STEP * 0.5f;
         }
 
-        // Vi räknar ut mellan accelerationerna
+        // Calculate midpoint accelerations
         const float2 mid_accelerations[3] = CalculateAccelerations(midbodies).data;
 
-        // Slutligen kan vi uppdatera positionerna och hastigheterna
+        // Update true positions & velocities using the midpoint values
         [unroll(3)]
         for (int i = 0; i < 3; i++)
         {
             bodies[i].position += midbodies[i].velocity * TIME_STEP;
             bodies[i].velocity += mid_accelerations[i] * TIME_STEP;
         }
+
+        // Update the buffer of frames (not a framebuffer this is different)
         if(t % frameInterval == 0)
         {
             const int frame = floor(t / frameInterval);
