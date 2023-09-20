@@ -1,4 +1,5 @@
-﻿using SolidCode.Atlas;
+﻿using System.Text.Json;
+using SolidCode.Atlas;
 using Three_core;
 using Three_Core;
 
@@ -43,50 +44,71 @@ public static class Program
         if (args.Length > 0)
         {
             string arg = args[0].ToLower();
-            if (arg == "view" || arg == "imgen" || arg == "stats")
+            if (args.Length > 1)
             {
-                if (args.Length > 1)
+                string[] files = args[1].Split(",");
+                for (int i = 0; i < files.Length; i++)
                 {
-                    string filename = args[1];
-                    if (System.IO.File.Exists(filename))
-                    {
-                        string fname = Path.GetFileName(filename);
-                        fname = fname.Substring(0, fname.Length - 4);
-                        Console.WriteLine("Reading File...");
-                        byte[] bytes = File.ReadAllBytes(filename);
-                        Console.WriteLine("Parsing Data...");
-                        RawSimulationDataCollection data = ThreeBodySimulationData.LoadData(bytes);
-                        Console.WriteLine("Deserializing...");
-                        (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
-                        
-                        if (arg == "imgen")
-                        {
-                            Console.WriteLine("Saving image...");
-                            ImageGen.GenerateAnimation(mfmap, fname, Brightness, BinFactor);
-                        } else if (arg == "stats")
-                        {
-                            ProbabilityMap map = ProcessFrame(mfmap.Maps[^1]);
-                            Console.WriteLine("Statistics for \"" + fname +"\"");
-                            Console.WriteLine("SimCount: " + data.Simulations);
-                            Console.WriteLine("Size: " + map.Size);
-                            Console.WriteLine("MAX A: " + map.MaxA);
-                            Console.WriteLine("MAX B: " + map.MaxB);
-                            Console.WriteLine("MAX C: " + map.MaxC);
-                            
-                            Console.WriteLine("A Certainty: " + (map.MaxA / (float)data.Simulations * 100).ToString("F5") + "%");
-                            Console.WriteLine("B Certainty: " + (map.MaxB / (float)data.Simulations * 100).ToString("F5") + "%");
-                            Console.WriteLine("C Certainty: " + (map.MaxC / (float)data.Simulations * 100).ToString("F5") + "%");
-                            
-                        }
-
-                    }
-                    else
-                    {
-                        SolidCode.Atlas.Debug.Log("File not found");
-                    }
+                    ProcessFile(files[i], args[0]);
                 }
             }
+            
         }
+    }
+
+    public static void ProcessFile(string filename, string arg)
+    {
+        if (System.IO.File.Exists(filename))
+        {
+            string fname = Path.GetFileName(filename);
+            fname = fname.Substring(0, fname.Length - 4);
+            Console.WriteLine("Reading File...");
+            byte[] bytes = File.ReadAllBytes(filename);
+            Console.WriteLine("Parsing Data...");
+            RawSimulationDataCollection data = ThreeBodySimulationData.LoadData(bytes);
+            Console.WriteLine("Deserializing...");
+            (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
+            if (arg == "imgen")
+            {
+                Console.WriteLine("Saving image...");
+                ImageGen.GenerateAnimation(mfmap, fname, Brightness, BinFactor);
+            } else if (arg == "stats")
+            {
+                ProbabilityMap map = ProcessFrame(mfmap.Maps[^1]);
+                Console.WriteLine("Statistics for \"" + fname +"\"");
+                Console.WriteLine("SimCount: " + data.Simulations);
+                Console.WriteLine("Size: " + map.Size);
+                Console.WriteLine("MAX A: " + map.MaxA);
+                Console.WriteLine("MAX B: " + map.MaxB);
+                Console.WriteLine("MAX C: " + map.MaxC);
+                            
+                Console.WriteLine("A Certainty: " + (map.MaxA / (float)data.Simulations * 100).ToString("F5") + "%");
+                Console.WriteLine("B Certainty: " + (map.MaxB / (float)data.Simulations * 100).ToString("F5") + "%");
+                Console.WriteLine("C Certainty: " + (map.MaxC / (float)data.Simulations * 100).ToString("F5") + "%");
+                            
+            } else if (arg == "state")
+            {
+                InitialState istate = new InitialState()
+                {
+                    A = state.Bodies[0].Position,
+                    B = state.Bodies[1].Position,
+                    C = state.Bodies[2].Position,
+                };
+                string idata = JsonSerializer.Serialize(istate);
+                Console.WriteLine("--- Initial Simulation Data ---");
+                Console.WriteLine(idata);
+            }
+            else
+            {
+                Console.WriteLine("Unknown command '" + arg + "'");
+            }
+        }
+        else
+        {
+            SolidCode.Atlas.Debug.Log("File not found");
+        }
+        
+
     }
 
     public static ProbabilityMap ProcessFrame(ProbabilityMap map)

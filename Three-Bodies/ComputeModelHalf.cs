@@ -63,6 +63,7 @@ public class ComputeModelHalf
     private DeviceBuffer rwBuffer;
     private DeviceBuffer readBuffer;
     private DeviceBuffer uniformBuffer;
+    private DeviceBuffer randomBuffer;
     private uint size = Program.CThreadCount * 3 * Program.FrameCount;
 
     public float[] GetRandomData()
@@ -95,13 +96,12 @@ public class ComputeModelHalf
         readBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<Vector2>() * size,
             BufferUsage.Staging));
         
-        DeviceBuffer dataBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<float>() * 10000,
+        randomBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<float>() * 10000,
             BufferUsage.StructuredBufferReadOnly,4));
         uniformBuffer =
             factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<BodyData>(), BufferUsage.UniformBuffer));
         Renderer.GraphicsDevice.UpdateBuffer(rwBuffer, 0, new Vector2[size]);
         Renderer.GraphicsDevice.UpdateBuffer(readBuffer, 0, new Vector2[size]);
-        Renderer.GraphicsDevice.UpdateBuffer(dataBuffer, 0, GetRandomData());
         Renderer.GraphicsDevice.UpdateBuffer(uniformBuffer, 0, new BodyData(new SimulationState(Program.CThreadCount * Program.CThreadGroups)));
         _resourceSet = factory.CreateResourceSet(new ResourceSetDescription
         {
@@ -109,7 +109,7 @@ public class ComputeModelHalf
             BoundResources = new BindableResource[]
             {
                 rwBuffer,
-                dataBuffer,
+                randomBuffer,
                 uniformBuffer
             }
         });
@@ -134,12 +134,14 @@ public class ComputeModelHalf
     {
         GraphicsDevice gd = Renderer.GraphicsDevice!;
         gd.WaitForIdle();
+        gd.UpdateBuffer(randomBuffer, 0, GetRandomData());
         Renderer.CommandList.Begin();
         Renderer.CommandList.SetPipeline(_pipeline!);
         Renderer.CommandList.SetComputeResourceSet(0, _resourceSet);
         Renderer.CommandList.Dispatch(xGroups, yGroups, zGroups);
         
         Renderer.CommandList.CopyBuffer(rwBuffer, 0, readBuffer, 0,(uint)Marshal.SizeOf<Vector2>() * size );
+
         Renderer.CommandList.End();
         gd.SubmitCommands(Renderer.CommandList);
         gd.WaitForIdle();
