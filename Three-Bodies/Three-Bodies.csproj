@@ -29,7 +29,7 @@
                 <OutputType>WinExe</OutputType>
             </PropertyGroup>
             <ItemGroup>
-                <PackageReference Include="SolidCode.Atlas" Version="1.0.0-rc.1" />
+                <PackageReference Include="SolidCode.Atlas" Version="1.0.0-rc.5" />
             </ItemGroup>
         </When>
     </Choose>
