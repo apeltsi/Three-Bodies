@@ -19,7 +19,7 @@
                 <OutputType>Exe</OutputType>
             </PropertyGroup>
             <ItemGroup>
-                <PackageReference Include="SolidCode.Atlas.Development" Version="1.0.0-rc.1" />
+                <PackageReference Include="SolidCode.Atlas.Development" Version="1.0.0-rc.5" />
             </ItemGroup>
         </When>
         <When Condition=" '$(Configuration)'=='Release' ">
