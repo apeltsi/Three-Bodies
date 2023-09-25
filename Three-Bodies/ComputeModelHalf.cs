@@ -64,7 +64,7 @@ public class ComputeModelHalf
     private DeviceBuffer readBuffer;
     private DeviceBuffer uniformBuffer;
     private DeviceBuffer randomBuffer;
-    private uint size = Program.CThreadCount * 3 * Program.FrameCount;
+    private uint size = Program.CThreadCount * 3 * Program.FrameCount * 2; // One for positional data on for velocity data
 
     public float[] GetRandomData()
     {

@@ -63,7 +63,7 @@ ArrData CalculateAccelerations(Body bodies[3])
 [numthreads(128,1,1)]
 void main(int3 id : SV_DispatchThreadID)
 {
-    const int access = id.x * 3;
+    const int access = id.x * 6;
     const int frameInterval = TICKS / framecount;
     Body bodies[3];
     const int randaccess = id.x * 10;
@@ -101,9 +101,16 @@ void main(int3 id : SV_DispatchThreadID)
         if(t % frameInterval == 0)
         {
             const int frame = floor(t / frameInterval);
-            PrimaryBuffer[frame * simcount * 3 + access] = bodies[0].position;
-            PrimaryBuffer[frame * simcount * 3 + access + 1] = bodies[1].position;
-            PrimaryBuffer[frame * simcount * 3 + access + 2] = bodies[2].position;
+
+            // Positional Data
+            PrimaryBuffer[frame * simcount * 6 + access] = bodies[0].position;
+            PrimaryBuffer[frame * simcount * 6 + access + 1] = bodies[1].position;
+            PrimaryBuffer[frame * simcount * 6 + access + 2] = bodies[2].position;
+
+            // Velocity Data
+            PrimaryBuffer[frame * simcount * 6 + access + 3] = bodies[0].velocity;
+            PrimaryBuffer[frame * simcount * 6 + access + 4] = bodies[1].velocity;
+            PrimaryBuffer[frame * simcount * 6 + access + 5] = bodies[2].velocity;
         }
     }
 }

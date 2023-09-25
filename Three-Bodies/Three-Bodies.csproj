@@ -42,4 +42,7 @@
       <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
       <PackageReference Include="ZstdSharp.Port" Version="0.7.2" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="assetpacks\" />
+    </ItemGroup>
 </Project>

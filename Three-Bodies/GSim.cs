@@ -90,15 +90,18 @@ public class GSim
 
     private void ProcessData()
     {
-        for (int i = 0; i < _dataToAnalyse.Length; i++)
+        for (int i = 0; i < _dataToAnalyse.Length; i += 6)
         {
-            int frame = (int)Math.Floor(i / (float)(Program.CThreadCount * 3));
+            int frame = (int)Math.Floor(i / (float)(Program.CThreadCount * 6));
 
             if (frame > Program.FrameCount - 1)
             {
                 frame = Program.FrameCount - 1;
             }
-            _map.AddAt(frame, new Vec2(_dataToAnalyse[i]), i % 3);
+            _map.AddA(frame, _dataToAnalyse[i]);
+            _map.AddB(frame, _dataToAnalyse[i + 1]);
+            _map.AddC(frame, _dataToAnalyse[i + 2]);
+
         }
     }
 }

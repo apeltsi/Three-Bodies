@@ -13,11 +13,11 @@ namespace ThreeBodies
     public static class Program
     {
         public const double Dt = 0.2;
-        public const int FrameCount = 100;
+        public const int FrameCount = 50;
         public const int SimCount = 1000;
         public const int TickCount = 20_000;
         public const int ThreadCount = 50;
-        public const int CThreadCount = 131072;
+        public const int CThreadCount = 131072 / 16;
         public const int CThreadGroups = 64; //1024;
         public const int TotalSimulations = CThreadCount * CThreadGroups;
         public const int Resolution = 1024;

@@ -18,14 +18,15 @@ public static class ThreeBodySimulationData
             map.Maps[i].CalculateMaxValues();
             frames[i] = new RawSimulationData
             {
-                A = state.Bodies[0].Position.AsVector2(),
-                B = state.Bodies[1].Position.AsVector2(),
-                C = state.Bodies[2].Position.AsVector2(),
-
+                
                 // We'll have to map the 2D array to a 1D array of arrays
                 AMap = RemapArray(map.Maps[i].MapA),
                 BMap = RemapArray(map.Maps[i].MapB),
                 CMap = RemapArray(map.Maps[i].MapC),
+                
+                AVelMap = RemapArray(map.VMaps[i].MapA),
+                BVelMap = RemapArray(map.VMaps[i].MapB),
+                CVelMap = RemapArray(map.VMaps[i].MapC),
 
                 AMax = map.Maps[i].MaxA,
                 BMax = map.Maps[i].MaxB,
@@ -37,20 +38,26 @@ public static class ThreeBodySimulationData
         {
             Frames = frames,
             Simulations = state.SimCount,
-            MapScale = map.Maps[0].MapSize
+            MapScale = map.Maps[0].MapSize,
+            A = state.Bodies[0].Position,
+            B = state.Bodies[1].Position,
+            C = state.Bodies[2].Position,
         };
     }
 
     public static (SimulationState, MultiFrameProbabilityMap) GetData(RawSimulationDataCollection data)
     {
         SimulationState state = new(data.Simulations);
+        state.Bodies[0].Position = new Vec2(data.A.X, data.A.Y);
+        state.Bodies[1].Position = new Vec2(data.B.X, data.B.Y);
+        state.Bodies[2].Position = new Vec2(data.C.X, data.C.Y);
+
         ProbabilityMap[] maps = new ProbabilityMap[data.Frames.Length];
+        VelocityMap[] vmaps = new VelocityMap[data.Frames.Length];
         for (int i = 0; i < data.Frames.Length; i++)
         {
             maps[i] = new ProbabilityMap(data.Frames[i].AMap.Length);
-            state.Bodies[0].Position = new Vec2(data.Frames[i].A.X, data.Frames[i].A.Y);
-            state.Bodies[1].Position = new Vec2(data.Frames[i].B.X, data.Frames[i].B.Y);
-            state.Bodies[2].Position = new Vec2(data.Frames[i].C.X, data.Frames[i].C.Y);
+            vmaps[i] = new VelocityMap(data.Frames[i].AMap.Length);
             state.RegenName();
 
             maps[i].MapA = UnmapArray(data.Frames[i].AMap);
@@ -60,6 +67,10 @@ public static class ThreeBodySimulationData
             maps[i].MaxB = data.Frames[i].BMax;
             maps[i].MaxC = data.Frames[i].CMax;
             maps[i].MapSize = data.MapScale;
+            vmaps[i].MapSize = data.MapScale;
+            vmaps[i].MapA = UnmapArray(data.Frames[i].AVelMap);
+            vmaps[i].MapB = UnmapArray(data.Frames[i].BVelMap);
+            vmaps[i].MapC = UnmapArray(data.Frames[i].CVelMap);
         }
 
         MultiFrameProbabilityMap mfmap = new MultiFrameProbabilityMap(data.Frames.Length, maps[0].Size);
@@ -67,17 +78,19 @@ public static class ThreeBodySimulationData
         return (state, mfmap);
     }
 
-    private static int[][] RemapArray(int[,] input)
+    private static T[][] RemapArray<T>(T[,] input)
     {
         int count = 0;
-        return input.Cast<int>()
+        return input.Cast<T>()
             .GroupBy(x => count++ / input.GetLength(1))
             .Select(g => g.ToArray()).ToArray();
     }
+    
+    
 
-    private static int[,] UnmapArray(int[][] input)
+    private static T[,] UnmapArray<T>(T[][] input)
     {
-        int[,] output = new int[input.Length, input[0].Length];
+        T[,] output = new T[input.Length, input[0].Length];
         for (int x = 0; x < input.Length; x++)
         {
             for (int y = 0; y < input[0].Length; y++)
@@ -126,19 +139,23 @@ public struct RawSimulationDataCollection
     public RawSimulationData[] Frames { get; set; }
     public int Simulations { get; set; }
     public double MapScale { get; set; }
+    public Vector2 A { get; set; }
+    public Vector2 B{ get; set; }
+    public Vector2 C{ get; set; }
 }
 
 public struct RawSimulationData
 {
-    // Start positionerna
-    public Vector2 A { get; set; }
-    public Vector2 B { get; set; }
-    public Vector2 C { get; set; }
 
     // ProbabilityMaps
     public int[][] AMap { get; set; }
     public int[][] BMap { get; set; }
     public int[][] CMap { get; set; }
+    
+    public Vector2[][] AVelMap { get; set; }
+    public Vector2[][] BVelMap { get; set; }
+    public Vector2[][] CVelMap { get; set; }
+
 
     // Högsta värden på varje ProbabilityMap
     public int AMax { get; set; }

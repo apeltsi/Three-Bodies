@@ -29,8 +29,8 @@ public class Simulation
             }
             ticks++;
         }
-        map.AddAt(Bodies[0].Position, 0);
-        map.AddAt(Bodies[1].Position, 1);
-        map.AddAt(Bodies[2].Position, 2);
+        map.AddA(Bodies[0].Position);
+        map.AddB(Bodies[1].Position);
+        map.AddC(Bodies[2].Position);
     }
 }
