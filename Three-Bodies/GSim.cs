@@ -43,6 +43,17 @@ public class GSim
             _model.Dispatch(Program.CThreadCount / 128, 1,1); // We divide by 128 because we have 128 threads per group
             _sims += Program.CThreadCount;
             _analysisThread?.Join();
+            if (i % (Program.CThreadGroups / 10) == 0 || i == 1)
+            {
+                float curInterest = _map.EvaluateInterest();
+                if (curInterest > 0.5f)
+                {
+                    // The map has a pretty predictable state quite early in the process, so the map isn't very interesting
+                    Debug.Log("Map is not interesting enough, skipping... (Interest: " + (curInterest * 100f).ToString("F3") + "%)");
+                    Status = "Skipping...";
+                    return;
+                }
+            }
             _dataToAnalyse = _model.GetBuffer();
             _analysisThread = new Thread(ProcessData);
             _analysisThread.Start();
@@ -61,6 +72,14 @@ public class GSim
         Debug.Log("Compute Executed :) after " + sw.ElapsedMilliseconds + "ms");
         Status = "Analyzing data...";
         _analysisThread?.Join();
+        float interest = _map.EvaluateInterest();
+        if (interest > 0.5f)
+        {
+            // The map has a pretty predictable state quite early in the process, so the map isn't very interesting
+            Debug.Log("Map is not interesting enough, skipping... (Interest: " + (interest * 100f).ToString("F3") + "%");
+            Status = "Skipping...";
+            return;
+        }
         
         Status = "Serializing data...";
         ThreeBodySimulationData.SaveToFile(State, _map);

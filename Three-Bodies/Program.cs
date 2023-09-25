@@ -13,7 +13,7 @@ namespace ThreeBodies
     public static class Program
     {
         public const double Dt = 0.2;
-        public const int FrameCount = 25;
+        public const int FrameCount = 100;
         public const int SimCount = 1000;
         public const int TickCount = 20_000;
         public const int ThreadCount = 50;

@@ -12,6 +12,7 @@ public class ProbabilityMap
     public int MaxB;
     public int MaxC;
     public int Size;
+    public int MapSims = 0;
 
     public ProbabilityMap(int size = 2048)
     {
@@ -33,12 +34,15 @@ public class ProbabilityMap
             {
                 case 0:
                     MapA[posX, posY]++;
+                    MapSims++;
                     break;
                 case 1:
                     MapB[posX, posY]++;
+                    MapSims++;
                     break;
                 case 2:
                     MapC[posX, posY]++;
+                    MapSims++;
                     break;
             }
         }
@@ -58,6 +62,7 @@ public class ProbabilityMap
                 c.MapA[x, y] = a.MapA[x, y] + b.MapA[x, y];
                 c.MapB[x, y] = a.MapB[x, y] + b.MapB[x, y];
                 c.MapC[x, y] = a.MapC[x, y] + b.MapC[x, y];
+                c.MapSims = a.MapSims + b.MapSims;
             }
         }
 

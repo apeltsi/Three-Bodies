@@ -1,5 +1,5 @@
-﻿#define TIME_STEP 0.4f
-#define TICKS 10000
+﻿#define TIME_STEP 0.6f
+#define TICKS 30000
 #define G 0.0000000000667f
 #define MASS 50.0f
 

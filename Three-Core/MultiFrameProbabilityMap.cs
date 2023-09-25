@@ -1,4 +1,6 @@
-﻿namespace Three_Core;
+﻿using Three_core;
+
+namespace Three_Core;
 
 public class MultiFrameProbabilityMap
 {
@@ -21,5 +23,17 @@ public class MultiFrameProbabilityMap
     public void AddAt(int frame, Vec2 pos, int body)
     {
         Maps[frame].AddAt(pos, body);
+    }
+
+    public float EvaluateInterest()
+    {
+        ProbabilityMap map = Maps[10];
+        map.CalculateMaxValues();
+        // Lets calculate our certainties to determine how interesting of a result we got
+        float certA = map.MaxA / (float)map.MapSims;
+        float certB = map.MaxB / (float)map.MapSims;
+        float certC = map.MaxC / (float)map.MapSims;
+        float certAvg = (certA + certB + certC) / 3f;
+        return certAvg;
     }
 }
