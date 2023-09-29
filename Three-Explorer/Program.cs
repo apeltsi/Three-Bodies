@@ -95,9 +95,9 @@ public static class Program
             {
                 InitialState istate = new InitialState()
                 {
-                    A = state.Bodies[0].Position.AsVector2(),
-                    B = state.Bodies[1].Position.AsVector2(),
-                    C = new Vector2(1,1),
+                    A = state.Bodies[0].Position,
+                    B = state.Bodies[1].Position,
+                    C = state.Bodies[2].Position,
                 };
                 string idata = JsonSerializer.Serialize(istate);
                 Console.WriteLine("--- Initial Simulation Data ---");
@@ -110,7 +110,7 @@ public static class Program
         }
         else
         {
-            SolidCode.Atlas.Debug.Log("File not found");
+            Debug.Log("File not found");
         }
         
 

@@ -7,6 +7,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="protobuf-net" Version="3.2.26" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
         <PackageReference Include="SolidCode.Atlas" Version="1.0.0-rc.5" />
         <PackageReference Include="ZstdSharp.Port" Version="0.7.2" />
