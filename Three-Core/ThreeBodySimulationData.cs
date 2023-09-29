@@ -75,6 +75,7 @@ public static class ThreeBodySimulationData
 
         MultiFrameProbabilityMap mfmap = new MultiFrameProbabilityMap(data.Frames.Length, maps[0].Size);
         mfmap.SetFrames(maps);
+        mfmap.SetVelocityFrames(vmaps);
         return (state, mfmap);
     }
 
@@ -113,6 +114,7 @@ public static class ThreeBodySimulationData
         byte[] bytes = new Decompressor().Unwrap(data.AsSpan()).ToArray();
         Console.WriteLine("Uncompressed size is " + (bytes.Length / (1000 * 1000)).ToString("F1") + "Mb");
         string jsonString = Encoding.UTF8.GetString(bytes);
+        Console.WriteLine("Deserializing to intermediary format...");
         return JsonSerializer.Deserialize<RawSimulationDataCollection>(jsonString);
     }
 

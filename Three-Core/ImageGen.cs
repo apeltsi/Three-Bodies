@@ -27,10 +27,77 @@ public static class ImageGen
         
     }
 
+    public static (Image<Rgba64>, Image<Rgba64>) GetVelocityImages(VelocityMap map)
+    {
+        const float multiplier = 1000f;
+        Image<Rgba64> abImage = new Image<Rgba64>(map.Size, map.Size);
+        
+            for (int x = 0; x < map.Size; x++)
+            {
+                for (int y = 0; y < map.Size; y++)
+                {
+                    Vector2 aBody = map.MapA[x, y];
+                    if (aBody.Length() != 0)
+                    {
+                        Debug.Log(aBody.ToString());
+                    }
+                    Vector2 bBody = map.MapB[x, y];
+                    float r = 0.5f + aBody.X * multiplier;
+                    float g = 0.5f + aBody.Y * multiplier;
+                    float b = 0.5f + bBody.X * multiplier;
+                    float a = 0.5f + bBody.Y * multiplier;
+                    abImage[x, y] = new Rgba64(new Vector4(r, g, b, a));
+                }
+            }
+            
+            Image<Rgba64> cImage = new Image<Rgba64>(map.Size, map.Size);
+        
+            for (int x = 0; x < map.Size; x++)
+            {
+                for (int y = 0; y < map.Size; y++)
+                {
+                    Vector2 cBody = map.MapC[x, y];
+                    float r = 0.5f + cBody.X * multiplier;
+                    float g = 0.5f + cBody.Y * multiplier;
+                    cImage[x, y] = new Rgba64(new Vector4(r, g, 0, 1f));
+                }
+            }
+
+            return (abImage, cImage);
+    }
+
     public static void GenerateImage(ProbabilityMap map, string name, int brightness = 1)
     {
         using (var image = GetImage(map, brightness))
             image.Save(name + ".png");
+    }
+
+    public static void GeneratePNGSequence(MultiFrameProbabilityMap map, string name, int brightness = 1, int binFactor = 1)
+    {
+        int size = map.Maps[0].Size / binFactor;
+        if (!Directory.Exists(name))
+        {
+            Directory.CreateDirectory(name);
+        }
+        for (int i = 0; i < map.FrameCount; i++)
+        {
+            ProbabilityMap m = map.Maps[i];
+            if (binFactor != 1)
+            {
+                m = m.BinDown(binFactor);
+            }
+
+            using (var image = GetImage(m, brightness))
+            {
+                image.Save(name + "/" + i + "a.png");
+            }
+
+            var (abImage, cImage) = GetVelocityImages(map.VMaps[i]);
+            abImage.Save(name + "/" + i + "b.png");
+            cImage.Save(name + "/" + i + "c.png");
+            abImage.Dispose();
+            cImage.Dispose();
+        }
     }
     
     public static void GenerateAnimation(MultiFrameProbabilityMap map, string name, int brightness = 1, int binFactor = 1)

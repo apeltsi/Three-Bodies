@@ -23,6 +23,11 @@ public class MultiFrameProbabilityMap
     {
         Maps = maps;
     }
+    
+    public void SetVelocityFrames(VelocityMap[] maps)
+    {
+        VMaps = maps;
+    }
 
     
     // Ugly code, but faster because there is no branching :)

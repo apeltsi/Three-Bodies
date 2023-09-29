@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Numerics;
+using System.Text.Json;
 using SolidCode.Atlas;
 using Three_core;
 using Three_Core;
@@ -66,12 +67,16 @@ public static class Program
             byte[] bytes = File.ReadAllBytes(filename);
             Console.WriteLine("Parsing Data...");
             RawSimulationDataCollection data = ThreeBodySimulationData.LoadData(bytes);
-            Console.WriteLine("Deserializing...");
+            Console.WriteLine("Deserializing to Map...");
             (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
             if (arg == "imgen")
             {
                 Console.WriteLine("Saving image...");
                 ImageGen.GenerateAnimation(mfmap, fname, Brightness, BinFactor);
+            } else if (arg == "sequence")
+            {
+                Console.WriteLine("Generating PNG Sequence...");
+                ImageGen.GeneratePNGSequence(mfmap, fname, Brightness, BinFactor);
             } else if (arg == "stats")
             {
                 ProbabilityMap map = ProcessFrame(mfmap.Maps[^1]);
@@ -90,9 +95,9 @@ public static class Program
             {
                 InitialState istate = new InitialState()
                 {
-                    A = state.Bodies[0].Position,
-                    B = state.Bodies[1].Position,
-                    C = state.Bodies[2].Position,
+                    A = state.Bodies[0].Position.AsVector2(),
+                    B = state.Bodies[1].Position.AsVector2(),
+                    C = new Vector2(1,1),
                 };
                 string idata = JsonSerializer.Serialize(istate);
                 Console.WriteLine("--- Initial Simulation Data ---");
