@@ -79,7 +79,7 @@ public static class ImageGen
         {
             Directory.CreateDirectory(name);
         }
-        for (int i = 0; i < map.FrameCount; i++)
+        IndexedThreadPool t = new IndexedThreadPool(map.FrameCount, 8, i =>
         {
             ProbabilityMap m = map.Maps[i];
             if (binFactor != 1)
@@ -97,7 +97,8 @@ public static class ImageGen
             cImage.Save(name + "/" + i + "c.png");
             abImage.Dispose();
             cImage.Dispose();
-        }
+        });
+        t.RunSync();
     }
     
     public static void GenerateAnimation(MultiFrameProbabilityMap map, string name, int brightness = 1, int binFactor = 1)
@@ -107,7 +108,8 @@ public static class ImageGen
         GifFrameMetadata metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata();
         metadata.FrameDelay = 5;
         gif.Metadata.GetGifMetadata().RepeatCount = 0;
-        for (int i = 0; i < map.FrameCount; i++)
+        Image<Rgba64>[] images = new Image<Rgba64>[map.FrameCount];
+        IndexedThreadPool t = new IndexedThreadPool(map.FrameCount, 8, i =>
         {
             ProbabilityMap m = map.Maps[i];
             if (binFactor != 1)
@@ -115,12 +117,16 @@ public static class ImageGen
                 m = m.BinDown(binFactor);
             }
 
-            using (var image = GetImage(m, brightness))
-            {
-                metadata = image.Frames.RootFrame.Metadata.GetGifMetadata();
-                metadata.FrameDelay = 10;
-                gif.Frames.AddFrame(image.Frames.RootFrame);
-            }
+            var image = GetImage(m, brightness);
+            metadata = image.Frames.RootFrame.Metadata.GetGifMetadata();
+            metadata.FrameDelay = 10;
+            images[i] = image;
+        });
+        t.RunSync();
+        for (int i = 0; i < images.Length; i++)
+        {
+            gif.Frames.AddFrame(images[i].Frames.RootFrame);
+            images[i].Dispose();
         }
         gif.SaveAsGif(name + ".gif");
     }

@@ -11,8 +11,7 @@ public static class ThreeBodySimulationData
     public static RawSimulationDataCollection CreateData(SimulationState state, MultiFrameProbabilityMap map)
     {
         EncodedFrame[] frames = new EncodedFrame[map.FrameCount];
-        // TODO: Use thread pools to speed this up
-        for (int i = 0; i < map.FrameCount; i++)
+        IndexedThreadPool pool = new IndexedThreadPool(map.Maps.Length, 8, i =>
         {
             map.Maps[i].CalculateMaxValues();
             var data = new RawSimulationData
@@ -36,7 +35,9 @@ public static class ThreeBodySimulationData
                 Data = GetCompressedBytes(data),
                 Index = i
             };
-        }
+        });
+        pool.RunSync();
+        
 
         return new RawSimulationDataCollection()
         {
@@ -65,13 +66,13 @@ public static class ThreeBodySimulationData
 
         ProbabilityMap[] maps = new ProbabilityMap[data.Frames.Length];
         VelocityMap[] vmaps = new VelocityMap[data.Frames.Length];
-        // TODO: Thread pools!
-        for (int i = 0; i < data.Frames.Length; i++)
+
+        IndexedThreadPool pool = new IndexedThreadPool(data.Frames.Length, 8, i =>
         {
             RawSimulationData rdat = LoadFrame(data.Frames[i].Data);
             (maps[i], vmaps[i]) = AsMapPair(data, rdat);
-        }
-
+        });
+        pool.RunSync();
         MultiFrameProbabilityMap mfmap = new MultiFrameProbabilityMap(data.Frames.Length, maps[0].Size);
         mfmap.SetFrames(maps);
         mfmap.SetVelocityFrames(vmaps);
