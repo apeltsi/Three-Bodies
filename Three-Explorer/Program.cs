@@ -66,33 +66,40 @@ public static class Program
             Console.WriteLine("Reading File...");
             byte[] bytes = File.ReadAllBytes(filename);
             Console.WriteLine("Parsing Data...");
-            RawSimulationDataCollection data = ThreeBodySimulationData.LoadData(bytes);
-            Console.WriteLine("Deserializing to Map...");
-            (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
+            RawSimulationDataCollection data = ThreeBodySimulationData.LoadDataCollection(bytes);
             if (arg == "imgen")
             {
                 Console.WriteLine("Saving image...");
+                Console.WriteLine("Deserializing to Map...");
+                (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
+                Console.WriteLine("Generating Animation...");
                 ImageGen.GenerateAnimation(mfmap, fname, Brightness, BinFactor);
             } else if (arg == "sequence")
             {
+                Console.WriteLine("Deserializing to Map...");
+                (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
                 Console.WriteLine("Generating PNG Sequence...");
                 ImageGen.GeneratePNGSequence(mfmap, fname, Brightness, BinFactor);
             } else if (arg == "stats")
             {
-                ProbabilityMap map = ProcessFrame(mfmap.Maps[^1]);
+                Console.WriteLine("Deserializing to Map...");
+                (ProbabilityMap map, VelocityMap _) = ThreeBodySimulationData.AsMapPair(data, ThreeBodySimulationData.LoadFrame(data.Frames[^1].Data));
                 Console.WriteLine("Statistics for \"" + fname +"\"");
+                
                 Console.WriteLine("SimCount: " + data.Simulations);
                 Console.WriteLine("Size: " + map.Size);
+                
                 Console.WriteLine("MAX A: " + map.MaxA);
                 Console.WriteLine("MAX B: " + map.MaxB);
                 Console.WriteLine("MAX C: " + map.MaxC);
-                            
+                
                 Console.WriteLine("A Certainty: " + (map.MaxA / (float)data.Simulations * 100).ToString("F5") + "%");
                 Console.WriteLine("B Certainty: " + (map.MaxB / (float)data.Simulations * 100).ToString("F5") + "%");
                 Console.WriteLine("C Certainty: " + (map.MaxC / (float)data.Simulations * 100).ToString("F5") + "%");
                             
             } else if (arg == "state")
             {
+                SimulationState state = ThreeBodySimulationData.GetState(data);
                 InitialState istate = new InitialState()
                 {
                     A = state.Bodies[0].Position,

@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Text;
 using SolidCode.Atlas;
 using ProtoBuf;
 using Three_Core;
@@ -11,11 +10,12 @@ public static class ThreeBodySimulationData
 {
     public static RawSimulationDataCollection CreateData(SimulationState state, MultiFrameProbabilityMap map)
     {
-        RawSimulationData[] frames = new RawSimulationData[map.FrameCount];
+        EncodedFrame[] frames = new EncodedFrame[map.FrameCount];
+        // TODO: Use thread pools to speed this up
         for (int i = 0; i < map.FrameCount; i++)
         {
             map.Maps[i].CalculateMaxValues();
-            frames[i] = new RawSimulationData
+            var data = new RawSimulationData
             {
                 
                 // We'll have to map the 2D array to a 1D array of arrays
@@ -31,6 +31,11 @@ public static class ThreeBodySimulationData
                 BMax = map.Maps[i].MaxB,
                 CMax = map.Maps[i].MaxC,
             };
+            frames[i] = new EncodedFrame()
+            {
+                Data = GetCompressedBytes(data),
+                Index = i
+            };
         }
 
         return new RawSimulationDataCollection()
@@ -44,38 +49,57 @@ public static class ThreeBodySimulationData
         };
     }
 
-    public static (SimulationState, MultiFrameProbabilityMap) GetData(RawSimulationDataCollection data)
+    public static SimulationState GetState(RawSimulationDataCollection data)
     {
         SimulationState state = new(data.Simulations);
         state.Bodies[0].Position = new Vector2(data.A.X, data.A.Y);
         state.Bodies[1].Position = new Vector2(data.B.X, data.B.Y);
         state.Bodies[2].Position = new Vector2(data.C.X, data.C.Y);
+        state.RegenName();
+        return state;
+    }
+
+    public static (SimulationState, MultiFrameProbabilityMap) GetData(RawSimulationDataCollection data)
+    {
+        SimulationState state = GetState(data);
 
         ProbabilityMap[] maps = new ProbabilityMap[data.Frames.Length];
         VelocityMap[] vmaps = new VelocityMap[data.Frames.Length];
+        // TODO: Thread pools!
         for (int i = 0; i < data.Frames.Length; i++)
         {
-            maps[i] = new ProbabilityMap(data.Frames[i].AMap.Length);
-            vmaps[i] = new VelocityMap(data.Frames[i].AMap.Length);
-            state.RegenName();
-
-            maps[i].MapA = UnmapIntArray(data.Frames[i].AMap);
-            maps[i].MapB = UnmapIntArray(data.Frames[i].BMap);
-            maps[i].MapC = UnmapIntArray(data.Frames[i].CMap);
-            maps[i].MaxA = data.Frames[i].AMax;
-            maps[i].MaxB = data.Frames[i].BMax;
-            maps[i].MaxC = data.Frames[i].CMax;
-            maps[i].MapSize = data.MapScale;
-            vmaps[i].MapSize = data.MapScale;
-            vmaps[i].MapA = UnmapVectorArray(data.Frames[i].AVelMap);
-            vmaps[i].MapB = UnmapVectorArray(data.Frames[i].BVelMap);
-            vmaps[i].MapC = UnmapVectorArray(data.Frames[i].CVelMap);
+            RawSimulationData rdat = LoadFrame(data.Frames[i].Data);
+            (maps[i], vmaps[i]) = AsMapPair(data, rdat);
         }
 
         MultiFrameProbabilityMap mfmap = new MultiFrameProbabilityMap(data.Frames.Length, maps[0].Size);
         mfmap.SetFrames(maps);
         mfmap.SetVelocityFrames(vmaps);
         return (state, mfmap);
+    }
+
+    public static (ProbabilityMap, VelocityMap) AsMapPair(RawSimulationDataCollection data, RawSimulationData rdat)
+    {
+         
+        ProbabilityMap map = new ProbabilityMap(rdat.AMap.Length);
+        VelocityMap vmap = new VelocityMap(rdat.AMap.Length);
+            
+
+        map.MapA = UnmapIntArray(rdat.AMap);
+        map.MapB = UnmapIntArray(rdat.BMap);
+        map.MapC = UnmapIntArray(rdat.CMap);
+            
+        map.MaxA = rdat.AMax;
+        map.MaxB = rdat.BMax;
+        map.MaxC = rdat.CMax;
+            
+        map.MapSize = data.MapScale;
+        vmap.MapSize = data.MapScale;
+            
+        vmap.MapA = UnmapVectorArray(rdat.AVelMap);
+        vmap.MapB = UnmapVectorArray(rdat.BVelMap);
+        vmap.MapC = UnmapVectorArray(rdat.CVelMap);
+        return (map, vmap);
     }
 
     private static IntColumn[] RemapIntArray(int[,] input)
@@ -105,7 +129,7 @@ public static class ThreeBodySimulationData
             {
                 output[x, y] = input[x].Array[y];
             }
-        }
+        }   
 
         return output;
     }
@@ -142,21 +166,19 @@ public static class ThreeBodySimulationData
         return output;
     }
     
-    public static byte[] GetCompressedBytes(RawSimulationDataCollection data)
+    public static byte[] GetCompressedBytes(RawSimulationData data)
     {
         byte[] bytes = GetDataBytes(data);
         return new Compressor(15).Wrap(bytes).ToArray();
     }
 
-    public static RawSimulationDataCollection LoadData(byte[] data)
+    public static RawSimulationData LoadFrame(byte[] data)
     {
         ReadOnlySpan<byte> bytes = new Decompressor().Unwrap(data.AsSpan()).ToArray();
-        Console.WriteLine("Uncompressed size is " + (bytes.Length / (1000 * 1000)).ToString("F1") + "Mb");
-        Console.WriteLine("Deserializing to intermediary format...");
-        return Serializer.Deserialize<RawSimulationDataCollection>(bytes);
+        return Serializer.Deserialize<RawSimulationData>(bytes);
     }
 
-    private static byte[] GetDataBytes(RawSimulationDataCollection data)
+    private static byte[] GetDataBytes(RawSimulationData data)
     {
         Debug.Log("Serializing to intermediary format...");
         byte[] bytes;
@@ -171,18 +193,25 @@ public static class ThreeBodySimulationData
     {
         RawSimulationDataCollection simData = CreateData(state, map);
         Debug.Log("Compressing...");
-        byte[] bytes = GetCompressedBytes(simData);
+        using var ms = new MemoryStream();
+        Serializer.Serialize(ms, simData);
+        byte[] bytes = ms.ToArray();
         if (!Directory.Exists(Path.Join(Atlas.AppDirectory, "output")))
             Directory.CreateDirectory(Path.Join(Atlas.AppDirectory, "output"));
         Debug.Log("Writing to file");
         File.WriteAllBytes(Path.Join(Atlas.AppDirectory, "output/" + state.Name + ".3bp"), bytes);
+    }
+
+    public static RawSimulationDataCollection LoadDataCollection(ReadOnlySpan<byte> data)
+    {
+        return Serializer.Deserialize<RawSimulationDataCollection>(data);
     }
 }
 [ProtoContract]
 public struct RawSimulationDataCollection
 {
     [ProtoMember(1)]
-    public RawSimulationData[] Frames { get; set; }
+    public EncodedFrame[] Frames { get; set; }
     
     [ProtoMember(2)]
     public int Simulations { get; set; }
@@ -199,6 +228,16 @@ public struct RawSimulationDataCollection
     [ProtoMember(6)]
     public SerializableVector2 C{ get; set; }
 }
+
+[ProtoContract]
+public struct EncodedFrame
+{
+    [ProtoMember(1)]
+    public byte[] Data { get; set; }
+
+    [ProtoMember(2)] public int Index;
+}
+
 [ProtoContract]
 public struct RawSimulationData
 {
