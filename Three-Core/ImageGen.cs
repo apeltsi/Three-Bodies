@@ -106,7 +106,7 @@ public static class ImageGen
         int size = map.Maps[0].Size / binFactor;
         using Image<Rgba64> gif = new(size, size, Color.Black);
         GifFrameMetadata metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata();
-        metadata.FrameDelay = 5;
+        metadata.FrameDelay = 2;
         gif.Metadata.GetGifMetadata().RepeatCount = 0;
         Image<Rgba64>[] images = new Image<Rgba64>[map.FrameCount];
         IndexedThreadPool t = new IndexedThreadPool(map.FrameCount, 8, i =>

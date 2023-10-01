@@ -47,11 +47,26 @@ public static class Program
             string arg = args[0].ToLower();
             if (args.Length > 1)
             {
-                string[] files = args[1].Split(",");
-                for (int i = 0; i < files.Length; i++)
+                if (args[1] == "dir")
                 {
-                    ProcessFile(files[i], args[0]);
+                    // Lets get all files in the directory
+                    string[] files = Directory.GetFiles(Directory.GetCurrentDirectory());
+                    Console.WriteLine($"Processing {files.Length} files...");
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        Console.WriteLine($"File {i + 1}...");
+                        ProcessFile(files[i], arg);
+                    }
                 }
+                else
+                {
+                    string[] files = args[1].Split(",");
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        ProcessFile(files[i], args[0]);
+                    }
+                }
+                
             }
             
         }
@@ -67,9 +82,9 @@ public static class Program
             byte[] bytes = File.ReadAllBytes(filename);
             Console.WriteLine("Parsing Data...");
             RawSimulationDataCollection data = ThreeBodySimulationData.LoadDataCollection(bytes);
-            if (arg == "imgen")
+            if (arg == "gif")
             {
-                Console.WriteLine("Saving image...");
+                Console.WriteLine("Saving animation...");
                 Console.WriteLine("Deserializing to Map...");
                 (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
                 Console.WriteLine("Generating Animation...");
@@ -83,7 +98,7 @@ public static class Program
             } else if (arg == "stats")
             {
                 Console.WriteLine("Deserializing to Map...");
-                (ProbabilityMap map, VelocityMap _) = ThreeBodySimulationData.AsMapPair(data, ThreeBodySimulationData.LoadFrame(data.Frames[^1].Data));
+                (ProbabilityMap map, VelocityMap _) = ThreeBodySimulationData.AsMapPair(data, ThreeBodySimulationData.LoadFrame(data.Frames[^1].Data).Item1);
                 Console.WriteLine("Statistics for \"" + fname +"\"");
                 
                 Console.WriteLine("SimCount: " + data.Simulations);
@@ -117,7 +132,7 @@ public static class Program
         }
         else
         {
-            Debug.Log("File not found");
+            Console.WriteLine("File not found");
         }
         
 

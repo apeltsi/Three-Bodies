@@ -66,19 +66,24 @@ public static class ThreeBodySimulationData
 
         ProbabilityMap[] maps = new ProbabilityMap[data.Frames.Length];
         VelocityMap[] vmaps = new VelocityMap[data.Frames.Length];
-
+        long totSize = 0;
         IndexedThreadPool pool = new IndexedThreadPool(data.Frames.Length, 8, i =>
         {
-            RawSimulationData rdat = LoadFrame(data.Frames[i].Data);
+            (RawSimulationData rdat, long size) = LoadFrame(data.Frames[i].Data);
+            Interlocked.Add(ref totSize, size);
             (maps[i], vmaps[i]) = AsMapPair(data, rdat);
         });
         pool.RunSync();
+        Console.WriteLine($"Uncompressed size is {(totSize / (1024f * 1024f * 1024f)):F3}GiB");
         MultiFrameProbabilityMap mfmap = new MultiFrameProbabilityMap(data.Frames.Length, maps[0].Size);
         mfmap.SetFrames(maps);
         mfmap.SetVelocityFrames(vmaps);
         return (state, mfmap);
     }
 
+    /// <summary>
+    /// Parses a RawSimulationData into a ProbabilityMap and a VelocityMap
+    /// </summary>
     public static (ProbabilityMap, VelocityMap) AsMapPair(RawSimulationDataCollection data, RawSimulationData rdat)
     {
          
@@ -103,6 +108,9 @@ public static class ThreeBodySimulationData
         return (map, vmap);
     }
 
+    /// <summary>
+    /// Parses a 2D array of ints into a formatted array of int columns ready to be serialized
+    /// </summary>
     private static IntColumn[] RemapIntArray(int[,] input)
     {
         IntColumn[] columns = new IntColumn[input.GetLength(0)];
@@ -120,7 +128,9 @@ public static class ThreeBodySimulationData
     }
     
     
-
+    /// <summary>
+    /// Parses a formatted array of int columns into a 2D array of ints
+    /// </summary>
     private static int[,] UnmapIntArray(IntColumn[] input)
     {
         int[,] output = new int[input.Length, input[0].Array.Length];
@@ -135,6 +145,9 @@ public static class ThreeBodySimulationData
         return output;
     }
     
+    /// <summary>
+    /// Parses a 2D array of vectors into a formatted array of vector columns ready to be serialized
+    /// </summary>
     private static VectorColumn[] RemapVectorArray(Vector2[,] input)
     {
         VectorColumn[] columns = new VectorColumn[input.GetLength(0)];
@@ -152,7 +165,9 @@ public static class ThreeBodySimulationData
     }
     
     
-
+    /// <summary>
+    /// Parses a formatted array of vector columns into a 2D array of vectors
+    /// </summary>
     private static Vector2[,] UnmapVectorArray(VectorColumn[] input)
     {
         Vector2[,] output = new Vector2[input.Length, input[0].Array.Length];
@@ -167,21 +182,26 @@ public static class ThreeBodySimulationData
         return output;
     }
     
+    /// <summary>
+    /// Returns the compressed bytes of the data
+    /// </summary>
     public static byte[] GetCompressedBytes(RawSimulationData data)
     {
         byte[] bytes = GetDataBytes(data);
         return new Compressor(15).Wrap(bytes).ToArray();
     }
 
-    public static RawSimulationData LoadFrame(byte[] data)
+    /// <summary>
+    /// Returns the deserialized data and the length of the uncompressed data
+    /// </summary>
+    public static (RawSimulationData, long) LoadFrame(byte[] data)
     {
         ReadOnlySpan<byte> bytes = new Decompressor().Unwrap(data.AsSpan()).ToArray();
-        return Serializer.Deserialize<RawSimulationData>(bytes);
+        return (Serializer.Deserialize<RawSimulationData>(bytes), bytes.Length);
     }
 
     private static byte[] GetDataBytes(RawSimulationData data)
     {
-        Debug.Log("Serializing to intermediary format...");
         byte[] bytes;
         using var ms = new MemoryStream();
         Serializer.Serialize(ms, data);
