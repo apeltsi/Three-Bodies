@@ -5,12 +5,6 @@
 
 [[vk::binding(0, 0)]]
 RWStructuredBuffer<float2> PrimaryBuffer;
-struct Body
-{
-    float2 position;
-    float2 velocity;
-    float2 acceleration;
-};
 
 [[vk::binding(1, 0)]]
 StructuredBuffer<float> RandomBuffer;
@@ -18,12 +12,9 @@ StructuredBuffer<float> RandomBuffer;
 [[vk::binding(2, 0)]]
 cbuffer BodyData
 {
-    float ax;
-    float ay;
-    float bx;
-    float by;
-    float cx;
-    float cy;
+    float2 a;
+    float2 b;
+    float2 c;
     int simcount;
     int framecount;
 }
@@ -31,6 +22,13 @@ cbuffer BodyData
 struct ArrData
 {
     float2 data[3];
+};
+
+struct Body
+{
+    float2 position;
+    float2 velocity;
+    float2 acceleration;
 };
 
 ArrData CalculateAccelerations(Body bodies[3])
@@ -69,9 +67,12 @@ void main(int3 id : SV_DispatchThreadID)
     const int randaccess = id.x * 10;
 
     // Initial positions with some randomness
-    bodies[0].position = float2(ax, ay) + float2(RandomBuffer[randaccess % 10000], RandomBuffer[(randaccess + 1) % 10000]) * 0.001f;
-    bodies[1].position = float2(bx, by) + float2(RandomBuffer[(randaccess + 2) % 10000], RandomBuffer[(randaccess + 3) % 10000]) * 0.001f;
-    bodies[2].position = float2(cx, cy) + float2(RandomBuffer[(randaccess + 4) % 10000], RandomBuffer[(randaccess + 5) % 10000]) * 0.001f;
+    bodies[0].position = float2(a.x, a.y)
+                        + float2(RandomBuffer[randaccess % 10000], RandomBuffer[(randaccess + 1) % 10000]) * 0.001f;
+    bodies[1].position = float2(b.x, b.y)
+                        + float2(RandomBuffer[(randaccess + 2) % 10000], RandomBuffer[(randaccess + 3) % 10000]) * 0.001f;
+    bodies[2].position = float2(c.x, c.y)
+                        + float2(RandomBuffer[(randaccess + 4) % 10000], RandomBuffer[(randaccess + 5) % 10000]) * 0.001f;
     
     for(int t = 0; t < TICKS; t++)
     {

@@ -17,7 +17,7 @@ namespace ThreeBodies
         public const int SimCount = 1000;
         public const int TickCount = 20_000;
         public const int ThreadCount = 50;
-        public const int CThreadCount = 131072 / 16;
+        public const int CThreadCount = 131072 / 8;
         public const int CThreadGroups = 64; //1024;
         public const int TotalSimulations = CThreadCount * CThreadGroups;
         public const int Resolution = 1024;

@@ -22,23 +22,17 @@ public class ComputeModelHalf
 
     struct BodyData
     {
-        public float ax = 0;
-        public float ay = 0;
-        public float bx = 0;
-        public float by = 0;
-        public float cx = 0;
-        public float cy = 0;
+        public Vector2 a;
+        public Vector2 b;
+        public Vector2 c;
         public int simcount = Program.CThreadCount;
         public int framecount = Program.FrameCount;
 
         public BodyData(SimulationState state)
         {
-            ax = (float)state.Bodies[0].Position.X;
-            ay = (float)state.Bodies[0].Position.Y;
-            bx = (float)state.Bodies[1].Position.X;
-            by = (float)state.Bodies[1].Position.Y;
-            cx = (float)state.Bodies[2].Position.X;
-            cy = (float)state.Bodies[2].Position.Y;
+            a = state.Bodies[0].Position;
+            b = state.Bodies[1].Position;
+            c = state.Bodies[2].Position;
         }
 
         public BodyData()
