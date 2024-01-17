@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Numerics;
+using System.Text.Json;
 using SolidCode.Atlas;
 using Three_core;
 using Three_Core;
@@ -46,11 +47,26 @@ public static class Program
             string arg = args[0].ToLower();
             if (args.Length > 1)
             {
-                string[] files = args[1].Split(",");
-                for (int i = 0; i < files.Length; i++)
+                if (args[1] == "dir")
                 {
-                    ProcessFile(files[i], args[0]);
+                    // Lets get all files in the directory
+                    string[] files = Directory.GetFiles(Directory.GetCurrentDirectory());
+                    Console.WriteLine($"Processing {files.Length} files...");
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        Console.WriteLine($"File {i + 1}...");
+                        ProcessFile(files[i], arg);
+                    }
                 }
+                else
+                {
+                    string[] files = args[1].Split(",");
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        ProcessFile(files[i], args[0]);
+                    }
+                }
+                
             }
             
         }
@@ -65,29 +81,40 @@ public static class Program
             Console.WriteLine("Reading File...");
             byte[] bytes = File.ReadAllBytes(filename);
             Console.WriteLine("Parsing Data...");
-            RawSimulationDataCollection data = ThreeBodySimulationData.LoadData(bytes);
-            Console.WriteLine("Deserializing...");
-            (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
-            if (arg == "imgen")
+            RawSimulationDataCollection data = ThreeBodySimulationData.LoadDataCollection(bytes);
+            if (arg == "gif")
             {
-                Console.WriteLine("Saving image...");
+                Console.WriteLine("Saving animation...");
+                Console.WriteLine("Deserializing to Map...");
+                (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
+                Console.WriteLine("Generating Animation...");
                 ImageGen.GenerateAnimation(mfmap, fname, Brightness, BinFactor);
+            } else if (arg == "sequence")
+            {
+                Console.WriteLine("Deserializing to Map...");
+                (SimulationState state, MultiFrameProbabilityMap mfmap) = ThreeBodySimulationData.GetData(data);
+                Console.WriteLine("Generating PNG Sequence...");
+                ImageGen.GeneratePNGSequence(mfmap, fname, Brightness, BinFactor);
             } else if (arg == "stats")
             {
-                ProbabilityMap map = ProcessFrame(mfmap.Maps[^1]);
+                Console.WriteLine("Deserializing to Map...");
+                (ProbabilityMap map, VelocityMap _) = ThreeBodySimulationData.AsMapPair(data, ThreeBodySimulationData.LoadFrame(data.Frames[^1].Data).Item1);
                 Console.WriteLine("Statistics for \"" + fname +"\"");
+                
                 Console.WriteLine("SimCount: " + data.Simulations);
                 Console.WriteLine("Size: " + map.Size);
+                
                 Console.WriteLine("MAX A: " + map.MaxA);
                 Console.WriteLine("MAX B: " + map.MaxB);
                 Console.WriteLine("MAX C: " + map.MaxC);
-                            
+                
                 Console.WriteLine("A Certainty: " + (map.MaxA / (float)data.Simulations * 100).ToString("F5") + "%");
                 Console.WriteLine("B Certainty: " + (map.MaxB / (float)data.Simulations * 100).ToString("F5") + "%");
                 Console.WriteLine("C Certainty: " + (map.MaxC / (float)data.Simulations * 100).ToString("F5") + "%");
                             
             } else if (arg == "state")
             {
+                SimulationState state = ThreeBodySimulationData.GetState(data);
                 InitialState istate = new InitialState()
                 {
                     A = state.Bodies[0].Position,
@@ -105,7 +132,7 @@ public static class Program
         }
         else
         {
-            SolidCode.Atlas.Debug.Log("File not found");
+            Console.WriteLine("File not found");
         }
         
 

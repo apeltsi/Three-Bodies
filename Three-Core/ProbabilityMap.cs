@@ -1,4 +1,5 @@
-﻿using SolidCode.Atlas;
+﻿using System.Numerics;
+using SolidCode.Atlas;
 
 namespace Three_Core;
 
@@ -12,7 +13,7 @@ public class ProbabilityMap
     public int MaxB;
     public int MaxC;
     public int Size;
-    public int MapSims = 0;
+    public int MapSims = 0; // Misleading name, actually sim count * 3
 
     public ProbabilityMap(int size = 2048)
     {
@@ -22,36 +23,55 @@ public class ProbabilityMap
         MapC = new int[size, size];
     }
 
-    public void AddAt(Vec2 pos, int body)
+    // To avoid branching were using three separate functions instead of one
+    public void AddA(Vector2 pos)
     {
-        if (double.IsNaN(pos.Y) || double.IsNaN(pos.X))
-            return;
-        int posX = (int) Math.Clamp(Math.Round((pos.X + MapSize / 2.0) * (Size - 1) / MapSize), 0, Size - 1);
-        int posY = (int) Math.Clamp(Math.Round((pos.Y + MapSize / 2.0) * (Size - 1) / MapSize), 0, Size - 1);
         try
         {
-            switch (body)
-            {
-                case 0:
-                    MapA[posX, posY]++;
-                    MapSims++;
-                    break;
-                case 1:
-                    MapB[posX, posY]++;
-                    MapSims++;
-                    break;
-                case 2:
-                    MapC[posX, posY]++;
-                    MapSims++;
-                    break;
-            }
+            if (float.IsNaN(pos.Y) || float.IsNaN(pos.X))
+                return;
+            int posX = (int)Math.Clamp(Math.Round((pos.X + MapSize / 2.0) * (Size - 1) / MapSize), 0, Size - 1);
+            int posY = (int)Math.Clamp(Math.Round((pos.Y + MapSize / 2.0) * (Size - 1) / MapSize), 0, Size - 1);
+            MapA[posX, posY]++;
+            MapSims++;
         }
         catch (Exception e)
         {
-            
         }
     }
-    
+
+    public void AddB(Vector2 pos)
+    {
+        try
+        {
+            if (float.IsNaN(pos.Y) || float.IsNaN(pos.X))
+                return;
+            int posX = (int)Math.Clamp(Math.Round((pos.X + MapSize / 2.0) * (Size - 1) / MapSize), 0, Size - 1);
+            int posY = (int)Math.Clamp(Math.Round((pos.Y + MapSize / 2.0) * (Size - 1) / MapSize), 0, Size - 1);
+            MapB[posX, posY]++;
+            MapSims++;
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+    public void AddC(Vector2 pos)
+    {
+        try
+        {
+            if (float.IsNaN(pos.Y) || float.IsNaN(pos.X))
+                return;
+            int posX = (int)Math.Clamp(Math.Round((pos.X + MapSize / 2.0) * (Size - 1) / MapSize), 0, Size - 1);
+            int posY = (int)Math.Clamp(Math.Round((pos.Y + MapSize / 2.0) * (Size - 1) / MapSize), 0, Size - 1);
+            MapC[posX, posY]++;
+            MapSims++;
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
     public static ProbabilityMap operator +(ProbabilityMap a, ProbabilityMap b)
     {
         ProbabilityMap c = new ProbabilityMap(b.Size);
@@ -82,10 +102,12 @@ public class ProbabilityMap
                 {
                     MaxA = MapA[x, y];
                 }
+
                 if (MapB[x, y] > MaxB)
                 {
                     MaxB = MapB[x, y];
                 }
+
                 if (MapC[x, y] > MaxC)
                 {
                     MaxC = MapC[x, y];
@@ -106,8 +128,8 @@ public class ProbabilityMap
                 map.MapC[x / factor, y / factor] += MapC[x, y];
             }
         }
+
         map.CalculateMaxValues();
         return map;
     }
-    
 }

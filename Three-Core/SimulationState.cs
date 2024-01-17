@@ -1,4 +1,5 @@
-﻿using SolidCode.Atlas.Standard;
+﻿using System.Numerics;
+using SolidCode.Atlas.Standard;
 using Three_Core;
 
 namespace Three_core;
@@ -39,5 +40,5 @@ public class SimulationState
 
 public class BodyState
 {
-    public Vec2 Position = new(ARandom.Range(-1f, 1f), ARandom.Range(-1f, 1f));
+    public Vector2 Position = new(ARandom.Range(-1f, 1f), ARandom.Range(-1f, 1f));
 }
